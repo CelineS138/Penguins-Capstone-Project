@@ -1,0 +1,234 @@
+---
+title: "Pens Capstone Project"
+output: html_document
+date: "2024-06-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(hockeyR)
+library(sportyR)
+```
+
+
+
+## Thoughts on measuring consistency
+
+
+- Measure the difference of playing statistics season-over-season
+- Weight the metrics differently based on importance
+  - consistency score will have more consistent players near 0 & inconsistent players much greater than 0
+- playing metrics will have to be per game or per 60 measures for unbiased information
+
+
+- Use pivot_wider function to increase number of columns in order to take the differences between playing metrics
+
+
+```{r}
+# pbp_2023_24 <- load_pbp('2023-24')
+# pbp_2022_23 <- load_pbp('2022-23')
+# pbp_2021_22 <- load_pbp('2021-22')
+# pbp_2020_21 <- load_pbp('2020-21')
+# pbp_2019_20 <- load_pbp('2019-20')
+# pbp_2018_19 <- load_pbp('2018-19')
+# pbp_2017_18 <- load_pbp('2017-18')
+# pbp_2016_17 <- load_pbp('2016-17')
+```
+
+
+
+```{r}
+basic_2023_24 <- read_csv("Data/Basic Stats/basic_stats_23_24.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2023)
+
+basic_2022_23 <- read_csv("Data/Basic Stats/basic_stats_22_23.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2022)
+
+basic_2021_22 <- read_csv("Data/Basic Stats/basic_stats_21_22.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2021)
+
+basic_2020_21 <- read_csv("Data/Basic Stats/basic_stats_20_21.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2020)
+
+basic_2019_20 <- read_csv("Data/Basic Stats/basic_stats_19_20.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2019)
+
+basic_2018_19 <- read_csv("Data/Basic Stats/basic_stats_18_19.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2018)
+
+basic_2017_18 <- read_csv("Data/Basic Stats/basic_stats_17_18.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2017)
+
+basic_2016_17 <- read_csv("Data/Basic Stats/basic_stats_16_17.csv") |> 
+  rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2016)
+```
+
+
+
+```{r, message=FALSE, warning=FALSE}
+advanced_2023_24 <- read_csv("Data/Advanced Stats/advanced_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+advanced_2022_23 <- read_csv("Data/Advanced Stats/advanced_stats_22_23.csv") |> 
+  mutate(start_year = 2022)
+
+advanced_2021_22 <- read_csv("Data/Advanced Stats/advanced_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+advanced_2020_21 <- read_csv("Data/Advanced Stats/advanced_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+advanced_2019_20 <- read_csv("Data/Advanced Stats/advanced_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+advanced_2018_19 <- read_csv("Data/Advanced Stats/advanced_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+advanced_2017_18 <- read_csv("Data/Advanced Stats/advanced_stats_17_18.csv") |>
+  mutate(start_year = 2017)
+
+advanced_2016_17 <- read_csv("Data/Advanced Stats/advanced_stats_16_17.csv") |>
+  mutate(start_year = 2016)
+```
+
+
+
+```{r}
+toi_2023_24 <- read_csv("Data/TOI Stats/toi_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+toi_2022_23 <- read_csv("Data/TOI Stats/toi_stats_22_23.csv") |>
+  mutate(start_year = 2022)
+
+toi_2021_22 <- read_csv("Data/TOI Stats/toi_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+toi_2020_21 <- read_csv("Data/TOI Stats/toi_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+toi_2019_20 <- read_csv("Data/TOI Stats/toi_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+toi_2018_19 <- read_csv("Data/TOI Stats/toi_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+toi_2017_18 <- read_csv("Data/TOI Stats/toi_stats_17_18.csv") |> 
+  mutate(start_year = 2017)
+
+toi_2016_17 <- read_csv("Data/TOI Stats/toi_stats_16_17.csv") |> 
+  mutate(start_year = 2016)
+```
+
+
+
+```{r}
+misc_2023_24 <- read_csv("Data/Misc Stats/misc_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+misc_2022_23 <- read_csv("Data/Misc Stats/misc_stats_22_23.csv") |>
+  mutate(start_year = 2022)
+
+misc_2021_22 <- read_csv("Data/Misc Stats/misc_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+misc_2020_21 <- read_csv("Data/Misc Stats/misc_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+misc_2019_20 <- read_csv("Data/Misc Stats/misc_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+misc_2018_19 <- read_csv("Data/Misc Stats/misc_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+misc_2017_18 <- read_csv("Data/Misc Stats/misc_stats_17_18.csv") |> 
+  mutate(start_year = 2017)
+
+misc_2016_17 <- read_csv("Data/Misc Stats/misc_stats_16_17.csv") |> 
+  mutate(start_year = 2016)
+```
+
+
+
+```{r}
+basic_df1 <- full_join(basic_2023_24, basic_2022_23)
+basic_df2 <- full_join(basic_2021_22, basic_2020_21)
+basic_df3 <- full_join(basic_2019_20, basic_2018_19)
+basic_df4 <- full_join(basic_2017_18, basic_2016_17)
+
+basic_df5 <- full_join(basic_df1, basic_df2)
+basic_df6 <- full_join(basic_df3, basic_df4)
+
+basic_df <- full_join(basic_df5, basic_df6)
+
+basic_df <- basic_df |> filter(Tm != "TOT")
+```
+
+
+
+```{r}
+advanced_df1 <- full_join(advanced_2023_24, advanced_2022_23)
+advanced_df2 <- full_join(advanced_2021_22, advanced_2020_21)
+advanced_df3 <- full_join(advanced_2019_20, advanced_2018_19)
+advanced_df4 <- full_join(advanced_2017_18, advanced_2016_17)
+
+advanced_df5 <- full_join(advanced_df1, advanced_df2)
+advanced_df6 <- full_join(advanced_df3, advanced_df4)
+
+advanced_df <- full_join(advanced_df5, advanced_df6)
+```
+
+
+
+```{r}
+toi_df1 <- full_join(toi_2023_24, toi_2022_23)
+toi_df2 <- full_join(toi_2021_22, toi_2020_21)
+toi_df3 <- full_join(toi_2019_20, toi_2018_19)
+toi_df4 <- full_join(toi_2017_18, toi_2016_17)
+
+toi_df5 <- full_join(toi_df1, toi_df2)
+toi_df6 <- full_join(toi_df3, toi_df4)
+
+toi_df <- full_join(toi_df5, toi_df6)
+
+toi_df <- toi_df |> select(-`...7`, -`...12`, -`...17`)
+```
+
+
+
+```{r}
+misc_df1 <- full_join(misc_2023_24, misc_2022_23)
+misc_df2 <- full_join(misc_2021_22, misc_2020_21)
+misc_df3 <- full_join(misc_2019_20, misc_2018_19)
+misc_df4 <- full_join(misc_2017_18, misc_2016_17)
+
+misc_df5 <- full_join(misc_df1, misc_df2)
+misc_df6 <- full_join(misc_df3, misc_df4)
+
+misc_df <- full_join(misc_df5, misc_df6)
+```
+
+
+
+```{r}
+basic_df |> 
+  filter(Tm != "TOT") |> 
+  group_by(Player, PlayerID) |> 
+  summarise(total_gp = sum(GP),
+            total_g = sum(G),
+            total_a = sum(A),
+            total_pts = sum(PTS),
+            total_pm = sum(`+/-`),
+            total_toi = sum(TOI),
+            total_s = sum(S),
+            total_blk = sum(BLK),
+            total_hit = sum(HIT)) |> 
+  filter(total_gp >= 200) |> 
+  arrange(desc(total_pts))
+```
+
+
+
+
+
