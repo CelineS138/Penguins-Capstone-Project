@@ -1,0 +1,14 @@
+---
+title: "Cole's Code"
+output: html_document
+date: "2024-06-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(broom)
+library(hockeyR)
+```
+
