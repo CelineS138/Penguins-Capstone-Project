@@ -1,0 +1,88 @@
+---
+title: "Checkpoint 1 Thoughts"
+format: html
+editor: visual
+author: "Celine, Cole"
+---
+
+## Thoughts on measuring consistency
+
+1. Derive a consistency variable (consistency score) by calculating the differences in performance statistics across seasons; apply different weights by position. 
+
+2. Weight the metrics differently based on importance for each position
+
+3. Consistency score will have more consistent players near 0 & inconsistent players much greater than 0
+
+4. Performance metrics must be `per game` or `per 60 minutes` to make it consistent and unbiased among player
+
+
+## Data 
+
+### Basic Statistics 
+
+
+
+
+### Advanced Statistics
+
+```{r}
+Stats_AD23.24 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD23-24.csv")
+
+Stats_AD22.23 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD22-23.csv")
+
+Stats_AD21.22 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD21-22.csv")
+
+Stats_AD20.21 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD20-21.csv")
+
+Stats_AD19.20 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD19-20.csv")
+
+Stats_AD18.19 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD18-19.csv")
+
+Stats_AD17.18 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD17-18.csv")
+
+Stats_AD16.17 <- read.csv("~/Desktop/Penguins Capstone Project/Advanced Stats/Stats_AD16-17.csv")
+
+combined_df <- rbind(Stats_AD23.24, Stats_AD22.23, Stats_AD21.22, Stats_AD20.21, Stats_AD19.20, 
+                     Stats_AD18.19, Stats_AD17.18, Stats_AD16.17)
+```
+
+
+## EDAs
+
+### EDAs using Basic Stats
+
+
+### EDAs using Advanced Stats
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+combined_df |> 
+  select("Player", "Pos", "CF.", "FF.", "oiSH.", "oiSV.", "oZS.", "dZS.", "Year") |> 
+  filter(Player == "Jake Guentzel") |> 
+  pivot_longer(cols = c(CF., FF., oiSH., oiSV., oZS., dZS.),
+               names_to = "Metric",
+               values_to = "Value") |> 
+  ggplot(aes(x = Year, y = Value, color = Metric)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Metrics Over the Years for Evgeni Malkin",
+       x = "Year",
+       y = "Metric Value",
+       color = "Metric") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
