@@ -28,28 +28,28 @@ library(hockeyR)
 
 
 ```{r}
-basic_2023_24 <- read_csv("Data/Basic Stats/basic_stats_23_24.csv") |> 
+basic_2023_24 <- read_csv("../Data/Basic Stats/basic_stats_23_24.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2023)
 
-basic_2022_23 <- read_csv("Data/Basic Stats/basic_stats_22_23.csv") |> 
+basic_2022_23 <- read_csv("../Data/Basic Stats/basic_stats_22_23.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2022)
 
-basic_2021_22 <- read_csv("Data/Basic Stats/basic_stats_21_22.csv") |> 
+basic_2021_22 <- read_csv("../Data/Basic Stats/basic_stats_21_22.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2021)
 
-basic_2020_21 <- read_csv("Data/Basic Stats/basic_stats_20_21.csv") |> 
+basic_2020_21 <- read_csv("../Data/Basic Stats/basic_stats_20_21.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2020)
 
-basic_2019_20 <- read_csv("Data/Basic Stats/basic_stats_19_20.csv") |> 
+basic_2019_20 <- read_csv("../Data/Basic Stats/basic_stats_19_20.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2019)
 
-basic_2018_19 <- read_csv("Data/Basic Stats/basic_stats_18_19.csv") |> 
+basic_2018_19 <- read_csv("../Data/Basic Stats/basic_stats_18_19.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2018)
 
-basic_2017_18 <- read_csv("Data/Basic Stats/basic_stats_17_18.csv") |> 
+basic_2017_18 <- read_csv("../Data/Basic Stats/basic_stats_17_18.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2017)
 
-basic_2016_17 <- read_csv("Data/Basic Stats/basic_stats_16_17.csv") |> 
+basic_2016_17 <- read_csv("../Data/Basic Stats/basic_stats_16_17.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2016)
 ```
 
@@ -65,30 +65,159 @@ basic_df5 <- full_join(basic_df1, basic_df2)
 basic_df6 <- full_join(basic_df3, basic_df4)
 
 basic_df <- full_join(basic_df5, basic_df6)
-
-long_basic_df <- basic_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, `+/-`, `S%`, PS), names_from = start_year)
 ```
 
 
 
 ```{r}
+long_basic_df <- basic_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, `+/-`, `S%`, PS), names_from = start_year)
+
 long_basic_df <- long_basic_df %>% 
   unnest() %>% 
-  replace(. == "NULL", NA) %>%
-  mutate(across(G_2023:PS_2016, ~replace_na(.x, 0)))
+  replace(. == "NULL", NA)
+  # mutate(across(G_2023:PS_2016, ~replace_na(.x, 0)))
 
-long_basic_df <- long_basic_df |> 
-  mutate(Gdiff_23_22 = abs(G_2023 - G_2022), 
-         Gdiff_22_21 = abs(G_2022 - G_2021), 
-         Gdiff_21_20 = abs(G_2021 - G_2020),
-         Gdiff_20_19 = abs(G_2020 - G_2019),
-         Gdiff_19_18 = abs(G_2019 - G_2018),
-         Gdiff_18_17 = abs(G_2018 - G_2017),
-         Gdiff_17_16 = abs(G_2017 - G_2016)
-         ) |> 
-  group_by(Player, PlayerID) |> 
-  summarise(total_Gdiff = sum(Gdiff_23_22, Gdiff_22_21, Gdiff_21_20, Gdiff_20_19, Gdiff_19_18, Gdiff_18_17, Gdiff_17_16))
+# long_basic_df_exp <- long_basic_df |> 
+#   mutate(Gdiff_23_22 = abs(G_2023 - G_2022),
+#          Gdiff_22_21 = abs(G_2022 - G_2021),
+#          Gdiff_21_20 = abs(G_2021 - G_2020),
+#          Gdiff_20_19 = abs(G_2020 - G_2019),
+#          Gdiff_19_18 = abs(G_2019 - G_2018),
+#          Gdiff_18_17 = abs(G_2018 - G_2017),
+#          Gdiff_17_16 = abs(G_2017 - G_2016)
+#          ) |>
+#   group_by(Player, PlayerID) |>
+#   summarise(total_Gdiff = sum(Gdiff_23_22, Gdiff_22_21, Gdiff_21_20, Gdiff_20_19, Gdiff_19_18, Gdiff_18_17, Gdiff_17_16))
 ```
+
+
+
+
+```{r}
+misc_2023_24 <- read_csv("../Data/Misc Stats/misc_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+misc_2022_23 <- read_csv("../Data/Misc Stats/misc_stats_22_23.csv") |>
+  mutate(start_year = 2022)
+
+misc_2021_22 <- read_csv("../Data/Misc Stats/misc_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+misc_2020_21 <- read_csv("../Data/Misc Stats/misc_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+misc_2019_20 <- read_csv("../Data/Misc Stats/misc_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+misc_2018_19 <- read_csv("../Data/Misc Stats/misc_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+misc_2017_18 <- read_csv("../Data/Misc Stats/misc_stats_17_18.csv") |> 
+  mutate(start_year = 2017)
+
+misc_2016_17 <- read_csv("../Data/Misc Stats/misc_stats_16_17.csv") |> 
+  mutate(start_year = 2016)
+```
+
+
+
+```{r}
+misc_df1 <- full_join(misc_2023_24, misc_2022_23)
+misc_df2 <- full_join(misc_2021_22, misc_2020_21)
+misc_df3 <- full_join(misc_2019_20, misc_2018_19)
+misc_df4 <- full_join(misc_2017_18, misc_2016_17)
+
+misc_df5 <- full_join(misc_df1, misc_df2)
+misc_df6 <- full_join(misc_df3, misc_df4)
+
+misc_df <- full_join(misc_df5, misc_df6)
+```
+
+
+
+```{r}
+long_misc_df <- misc_df |> 
+  filter(Pos != "G", GP >= 20) |> 
+  pivot_wider(id_cols = c(Player), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `OPS`, `DPS`, `PS`), names_from = start_year)
+
+long_misc_df <- long_misc_df %>% 
+  unnest() %>% 
+  replace(. == "NULL", NA)
+  # mutate(across(`G/GP_2023`:`PS_2016`, ~replace_na(.x, 0)))
+
+long_misc_df_exp <- long_misc_df |>
+  group_by(Player) |> 
+  mutate(ptspg_diff_23_22 = abs(`PTS/GP_2023` - `PTS/GP_2022`),
+         ptspg_diff_22_21 = abs(`PTS/GP_2022` - `PTS/GP_2021`),
+         ptspg_diff_21_20 = abs(`PTS/GP_2021` - `PTS/GP_2020`),
+         ptspg_diff_20_19 = abs(`PTS/GP_2020` - `PTS/GP_2019`),
+         ptspg_diff_19_18 = abs(`PTS/GP_2019` - `PTS/GP_2018`),
+         ptspg_diff_18_17 = abs(`PTS/GP_2018` - `PTS/GP_2017`),
+         ptspg_diff_17_16 = abs(`PTS/GP_2017` - `PTS/GP_2016`),
+         ops_diff_23_22 = abs(OPS_2023 - OPS_2022),
+         ops_diff_22_21 = abs(OPS_2022 - OPS_2021),
+         ops_diff_21_20 = abs(OPS_2021 - OPS_2020),
+         ops_diff_20_19 = abs(OPS_2020 - OPS_2019),
+         ops_diff_19_18 = abs(OPS_2019 - OPS_2018),
+         ops_diff_18_17 = abs(OPS_2018 - OPS_2017),
+         ops_diff_17_16 = abs(OPS_2017 - OPS_2016)
+         )
+```
+
+
+
+```{r}
+long_misc_df_exp |> 
+  group_by(Player) |> 
+  summarise(total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16)) |> 
+  arrange(desc(total_ptspg_diff)) |> 
+  head(n = 10) |> 
+  ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
+  geom_col(fill = "purple") +
+  geom_label(aes(label = total_ptspg_diff), size = 5) +
+  theme_bw() +
+  labs(
+    x = "Total Points Per Game Difference",
+    y = "Players",
+    caption = "Data courtesy of Hockey-Reference"
+  )
+
+
+long_misc_df_exp |> 
+  group_by(Player) |> 
+  summarise(total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16)) |> 
+  arrange(desc(total_ops_diff)) |> 
+  head(n = 10) |> 
+  ggplot(aes(y = reorder(Player, total_ops_diff), x = total_ops_diff)) +
+  geom_col(fill = "purple") +
+  geom_label(aes(label = total_ops_diff), size = 5) +
+  theme_bw() +
+  labs(
+    x = "Total Points Per Game Difference",
+    y = "Players",
+    caption = "Data courtesy of Hockey-Reference"
+  )
+
+
+# long_misc_df_exp |> 
+#   group_by(Player) |> 
+#   summarise(total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16)) |> 
+#   arrange(total_ptspg_diff) |> 
+#   head(n = 10) |> 
+#   ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
+#   geom_col(fill = "purple") +
+#   geom_label(aes(label = total_ptspg_diff), size = 5) +
+#   theme_bw() +
+#   labs(
+#     x = "Total Points Per Game Difference",
+#     y = "Players",
+#     caption = "Data courtesy of Hockey-Reference"
+#   )
+```
+
+
+
+
 
 
