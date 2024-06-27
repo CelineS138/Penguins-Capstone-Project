@@ -23,4 +23,5 @@ How do we define a consistent player?
 
     -   Metrics to look at:
 
-        -   means, variances within a season
+        -   means, variances within a season of valueble performance
+        -   Need to define valuable perfomance based on player type i.e goalie, forward or defense man
