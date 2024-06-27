@@ -56,15 +56,7 @@ basic_2016_17 <- read_csv("../Data/Basic Stats/basic_stats_16_17.csv") |>
 
 
 ```{r}
-basic_df1 <- full_join(basic_2023_24, basic_2022_23)
-basic_df2 <- full_join(basic_2021_22, basic_2020_21)
-basic_df3 <- full_join(basic_2019_20, basic_2018_19)
-basic_df4 <- full_join(basic_2017_18, basic_2016_17)
-
-basic_df5 <- full_join(basic_df1, basic_df2)
-basic_df6 <- full_join(basic_df3, basic_df4)
-
-basic_df <- full_join(basic_df5, basic_df6)
+basic_df <- rbind(basic_2016_17, basic_2017_18, basic_2018_19, basic_2019_20, basic_2020_21, basic_2021_22, basic_2022_23, basic_2023_24)
 ```
 
 
@@ -123,15 +115,16 @@ misc_2016_17 <- read_csv("../Data/Misc Stats/misc_stats_16_17.csv") |>
 
 
 ```{r}
-misc_df1 <- full_join(misc_2023_24, misc_2022_23)
-misc_df2 <- full_join(misc_2021_22, misc_2020_21)
-misc_df3 <- full_join(misc_2019_20, misc_2018_19)
-misc_df4 <- full_join(misc_2017_18, misc_2016_17)
+misc_df <- rbind(misc_2016_17, misc_2017_18, misc_2018_19, misc_2019_20, misc_2020_21, misc_2021_22, misc_2022_23, misc_2023_24)
 
-misc_df5 <- full_join(misc_df1, misc_df2)
-misc_df6 <- full_join(misc_df3, misc_df4)
+misc_df <- misc_df |> 
+  mutate(Pos = str_extract(Pos, "[A-Z]"))
 
-misc_df <- full_join(misc_df5, misc_df6)
+player_pos <- misc_df |> 
+  filter(Pos != "G") |> 
+  group_by(Player, PlayerID) |> 
+  summarise(Pos = ifelse(Pos %in% c("C", "L", "R"), "F", "D")) |> 
+  unique()
 ```
 
 
@@ -148,7 +141,7 @@ long_misc_df <- long_misc_df %>%
 
 long_misc_df_exp <- long_misc_df |>
   group_by(Player) |> 
-  mutate(ptspg_diff_23_22 = abs(`PTS/GP_2023` - `PTS/GP_2022`),
+  summarise(ptspg_diff_23_22 = abs(`PTS/GP_2023` - `PTS/GP_2022`),
          ptspg_diff_22_21 = abs(`PTS/GP_2022` - `PTS/GP_2021`),
          ptspg_diff_21_20 = abs(`PTS/GP_2021` - `PTS/GP_2020`),
          ptspg_diff_20_19 = abs(`PTS/GP_2020` - `PTS/GP_2019`),
@@ -161,8 +154,14 @@ long_misc_df_exp <- long_misc_df |>
          ops_diff_20_19 = abs(OPS_2020 - OPS_2019),
          ops_diff_19_18 = abs(OPS_2019 - OPS_2018),
          ops_diff_18_17 = abs(OPS_2018 - OPS_2017),
-         ops_diff_17_16 = abs(OPS_2017 - OPS_2016)
-         )
+         ops_diff_17_16 = abs(OPS_2017 - OPS_2016),
+         total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16, na.rm = TRUE),
+            total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
+            consistency_score = 0.7 * total_ptspg_diff + 0.3 * total_ops_diff
+  )
+
+
+long_misc_df_exp <- long_misc_df_exp |>  full_join(player_pos)
 ```
 
 
@@ -170,7 +169,6 @@ long_misc_df_exp <- long_misc_df |>
 ```{r}
 long_misc_df_exp |> 
   group_by(Player) |> 
-  summarise(total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16)) |> 
   arrange(desc(total_ptspg_diff)) |> 
   head(n = 10) |> 
   ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
@@ -186,7 +184,6 @@ long_misc_df_exp |>
 
 long_misc_df_exp |> 
   group_by(Player) |> 
-  summarise(total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16)) |> 
   arrange(desc(total_ops_diff)) |> 
   head(n = 10) |> 
   ggplot(aes(y = reorder(Player, total_ops_diff), x = total_ops_diff)) +
@@ -194,10 +191,44 @@ long_misc_df_exp |>
   geom_label(aes(label = total_ops_diff), size = 5) +
   theme_bw() +
   labs(
-    x = "Total Points Per Game Difference",
+    x = "Total Offensive Point Shares Difference",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
   )
+
+
+
+long_misc_df_exp |> 
+  filter(Pos == "F") |> 
+  group_by(Player) |> 
+  arrange(desc(consistency_score)) |> 
+  head(n = 10) |> 
+  ggplot(aes(y = reorder(Player, consistency_score), x = consistency_score)) +
+  geom_col(fill = "purple") +
+  geom_label(aes(label = consistency_score), size = 5) +
+  theme_bw() +
+  labs(
+    x = "Preliminary Consistency Score",
+    y = "Players",
+    caption = "Data courtesy of Hockey-Reference"
+  )
+
+
+long_misc_df_exp |> 
+  filter(consistency_score >= 0.5) |> 
+  group_by(Player) |> 
+  arrange(consistency_score) |> 
+  head(n = 10) |> 
+  ggplot(aes(y = reorder(Player, -consistency_score), x = consistency_score)) +
+  geom_col(fill = "purple") +
+  geom_label(aes(label = consistency_score), size = 5) +
+  theme_bw() +
+  labs(
+    x = "Preliminary Consistency Score",
+    y = "Players",
+    caption = "Data courtesy of Hockey-Reference"
+  )
+
 
 
 # long_misc_df_exp |> 
