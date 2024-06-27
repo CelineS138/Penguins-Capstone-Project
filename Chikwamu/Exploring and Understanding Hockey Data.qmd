@@ -1,0 +1,26 @@
+---
+title: "Sketching Consistency"
+author: "Chisunta M Chikwamu"
+format: html
+editor: visual
+---
+
+## Consistency in Hockey
+
+How do we define a consistent player?
+
+**Initial thoughts to be investigated;**
+
+-   Consistent goalies, defense men, forward men or what combinations of consistency make an optimal outcome
+
+-   Are these combinations team specific? How do we find optimal combinations.
+
+    ### Understanding Hockey Data or what kind of data to use:
+
+    -   Play by play
+
+    -   Team data or player data
+
+    -   Metrics to look at:
+
+        -   means, variances within a season
