@@ -120,6 +120,12 @@ misc_df <- rbind(misc_2016_17, misc_2017_18, misc_2018_19, misc_2019_20, misc_20
 misc_df <- misc_df |> 
   mutate(Pos = str_extract(Pos, "[A-Z]"))
 
+num_seasons <- misc_df |> 
+  group_by(Player) |> 
+  count() |> 
+  ungroup() |> 
+  mutate(num_seasons = n)
+
 player_pos <- misc_df |> 
   filter(Pos != "G") |> 
   group_by(Player, PlayerID) |> 
@@ -161,7 +167,9 @@ long_misc_df_exp <- long_misc_df |>
   )
 
 
-long_misc_df_exp <- long_misc_df_exp |>  full_join(player_pos)
+long_misc_df_exp <- long_misc_df_exp |> full_join(player_pos)
+
+long_misc_df_exp <- long_misc_df_exp |> full_join(num_seasons) |> select(-n)
 ```
 
 
@@ -199,7 +207,7 @@ long_misc_df_exp |>
 
 
 long_misc_df_exp |> 
-  filter(Pos == "F") |> 
+  filter(Pos == "F", num_seasons >= 3) |> 
   group_by(Player) |> 
   arrange(desc(consistency_score)) |> 
   head(n = 10) |> 
@@ -215,6 +223,7 @@ long_misc_df_exp |>
 
 
 long_misc_df_exp |> 
+  filter(Pos == "F", num_seasons >= 3) |> 
   filter(consistency_score >= 0.5) |> 
   group_by(Player) |> 
   arrange(consistency_score) |> 
