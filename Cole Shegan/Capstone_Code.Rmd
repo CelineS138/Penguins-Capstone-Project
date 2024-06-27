@@ -219,7 +219,8 @@ long_misc_df_exp |>
     x = "Preliminary Consistency Score",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
-  )
+  ) +
+  scale_x_continuous(limits = c(0, 9), n.breaks = 6)
 
 
 long_misc_df_exp |> 
@@ -236,7 +237,8 @@ long_misc_df_exp |>
     x = "Preliminary Consistency Score",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
-  )
+  ) +
+  scale_x_continuous(limits = c(0, 0.6), n.breaks = 7)
 
 
 
