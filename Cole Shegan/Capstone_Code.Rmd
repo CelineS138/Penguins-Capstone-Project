@@ -25,6 +25,8 @@ library(hockeyR)
 
 - Use pivot_wider function to increase number of columns in order to take the differences between playing metrics
 
+- Use the average of differences to measure consistency
+
 
 
 ```{r}
