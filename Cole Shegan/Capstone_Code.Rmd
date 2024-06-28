@@ -121,15 +121,17 @@ misc_df <- misc_df |>
   mutate(Pos = str_extract(Pos, "[A-Z]"))
 
 num_seasons <- misc_df |> 
+  filter(Pos != "G") |> 
   group_by(Player) |> 
   count() |> 
   ungroup() |> 
-  mutate(num_seasons = n)
+  mutate(num_seasons = n) |> 
+  unique()
 
 player_pos <- misc_df |> 
   filter(Pos != "G") |> 
-  group_by(Player, PlayerID) |> 
-  summarise(Pos = ifelse(Pos %in% c("C", "L", "R"), "F", "D")) |> 
+  group_by(Player) |> 
+  summarise(Pos = ifelse(Pos %in% c("C", "L", "R", "W", "F"), "F", "D")) |> 
   unique()
 ```
 
@@ -138,7 +140,7 @@ player_pos <- misc_df |>
 ```{r}
 long_misc_df <- misc_df |> 
   filter(Pos != "G", GP >= 20) |> 
-  pivot_wider(id_cols = c(Player), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `OPS`, `DPS`, `PS`), names_from = start_year)
+  pivot_wider(id_cols = c(Player), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
 
 long_misc_df <- long_misc_df %>% 
   unnest() %>% 
@@ -154,6 +156,7 @@ long_misc_df_exp <- long_misc_df |>
          ptspg_diff_19_18 = abs(`PTS/GP_2019` - `PTS/GP_2018`),
          ptspg_diff_18_17 = abs(`PTS/GP_2018` - `PTS/GP_2017`),
          ptspg_diff_17_16 = abs(`PTS/GP_2017` - `PTS/GP_2016`),
+         
          ops_diff_23_22 = abs(OPS_2023 - OPS_2022),
          ops_diff_22_21 = abs(OPS_2022 - OPS_2021),
          ops_diff_21_20 = abs(OPS_2021 - OPS_2020),
@@ -161,9 +164,28 @@ long_misc_df_exp <- long_misc_df |>
          ops_diff_19_18 = abs(OPS_2019 - OPS_2018),
          ops_diff_18_17 = abs(OPS_2018 - OPS_2017),
          ops_diff_17_16 = abs(OPS_2017 - OPS_2016),
+         
+         p_m_diff_23_22 = abs(`+/-_2023` - `+/-_2022`),
+         p_m_diff_22_21 = abs(`+/-_2022` - `+/-_2021`),
+         p_m_diff_21_20 = abs(`+/-_2021` - `+/-_2020`),
+         p_m_diff_20_19 = abs(`+/-_2020` - `+/-_2019`),
+         p_m_diff_19_18 = abs(`+/-_2019` - `+/-_2018`),
+         p_m_diff_18_17 = abs(`+/-_2018` - `+/-_2017`),
+         p_m_diff_17_16 = abs(`+/-_2017` - `+/-_2016`),
+         
          total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16, na.rm = TRUE),
-            total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
-            consistency_score = 0.7 * total_ptspg_diff + 0.3 * total_ops_diff
+         
+         total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
+         
+         total_p_m_diff = sum(p_m_diff_23_22, p_m_diff_22_21, p_m_diff_21_20, p_m_diff_20_19, p_m_diff_19_18, p_m_diff_18_17, p_m_diff_17_16, na.rm = TRUE),
+         
+         # std_ptspg_diff = abs(log(total_ptspg_diff)),
+         
+         # std_ops_diff = log(total_ops_diff),
+         
+         std_p_m_diff = log(total_p_m_diff),
+         
+            consistency_score = round(sum(0.5 * total_ptspg_diff, 0.2 * total_ops_diff, 0.3 * std_p_m_diff), 3)
   )
 
 
@@ -207,7 +229,7 @@ long_misc_df_exp |>
 
 
 long_misc_df_exp |> 
-  filter(Pos == "F", num_seasons >= 3) |> 
+  filter(Pos == "F", num_seasons >= 4, consistency_score != Inf) |> 
   group_by(Player) |> 
   arrange(desc(consistency_score)) |> 
   head(n = 10) |> 
@@ -219,13 +241,13 @@ long_misc_df_exp |>
     x = "Preliminary Consistency Score",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
-  ) +
-  scale_x_continuous(limits = c(0, 9), n.breaks = 6)
+  )
+  # scale_x_continuous(limits = c(0, 9), n.breaks = 6)
 
 
 long_misc_df_exp |> 
-  filter(Pos == "F", num_seasons >= 3) |> 
-  filter(consistency_score >= 0.5) |> 
+  filter(Pos == "F", num_seasons >= 4) |> 
+  filter(consistency_score >= 0) |> 
   group_by(Player) |> 
   arrange(consistency_score) |> 
   head(n = 10) |> 
@@ -237,25 +259,9 @@ long_misc_df_exp |>
     x = "Preliminary Consistency Score",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
-  ) +
-  scale_x_continuous(limits = c(0, 0.6), n.breaks = 7)
+  )
+  # scale_x_continuous(limits = c(0, 0.6), n.breaks = 7)
 
-
-
-# long_misc_df_exp |> 
-#   group_by(Player) |> 
-#   summarise(total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16)) |> 
-#   arrange(total_ptspg_diff) |> 
-#   head(n = 10) |> 
-#   ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
-#   geom_col(fill = "purple") +
-#   geom_label(aes(label = total_ptspg_diff), size = 5) +
-#   theme_bw() +
-#   labs(
-#     x = "Total Points Per Game Difference",
-#     y = "Players",
-#     caption = "Data courtesy of Hockey-Reference"
-#   )
 ```
 
 
