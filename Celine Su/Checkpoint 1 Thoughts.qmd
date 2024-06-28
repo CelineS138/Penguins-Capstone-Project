@@ -53,8 +53,6 @@ Metrics to measure consistency among goalies:
 
 -   Goalie point shares
 
-
-
 ## Data
 
 [Hockey-reference.com](http://hockey-reference.com/)
@@ -109,7 +107,7 @@ basic_df <- rbind(basic_2023_24, basic_2022_23, basic_2021_22, basic_2020_21, ba
                      basic_2020_21, basic_2019_20, basic_2018_19, basic_2017_18, basic_2016_17)
 ```
 
-```{r, setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 
 long_basic_df <- basic_df |> 
@@ -128,7 +126,7 @@ long_basic_df <- long_basic_df |>
 
 ### Miscellaneous Statistics
 
-```{r, setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 
 misc_2023_24 <- read_csv("https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_23_24.csv") |> 
@@ -161,7 +159,7 @@ misc_df <- rbind(misc_2023_24, misc_2022_23, misc_2021_22, misc_2020_21, misc_20
                  misc_2018_19, misc_2017_18, misc_2016_17)
 ```
 
-```{r, setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 long_misc_df <- misc_df |> 
@@ -196,7 +194,7 @@ long_misc_df_exp <- long_misc_df |>
 
 ### Advanced Statistics
 
-```{r, setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 advanced_2023_24 <- read_csv("https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_23_24.csv") |> 
@@ -307,7 +305,7 @@ advanced_df |>
   ggplot(aes(x = start_year, y = Value, color = Stats)) +
   geom_point(alpha = 0.6) +
   geom_smooth(se = FALSE) +
-  labs(title = "Metrics Over the Years for Evgeni Malkin",
+  labs(title = "Metrics Over the Years for Jake Guentzel",
        x = "Year",
        y = "Stats Value",
        color = "Stats") +
