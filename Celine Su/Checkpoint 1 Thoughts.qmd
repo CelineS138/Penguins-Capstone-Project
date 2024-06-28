@@ -15,7 +15,7 @@ author: "Celine, Cole"
 
 4.  Performance metrics must be `per game` or `per 60 minutes` to make it consistent and unbiased among player
 
-Metrics to measure consistency among forwards:
+**Metrics to measure consistency among forwards:**
 
 -   Pts/gp
 
@@ -31,7 +31,7 @@ Metrics to measure consistency among forwards:
 
 -   Corsi for %? Fenwick for %?
 
-Metrics to measure consistency among defensemen:
+**Metrics to measure consistency among defensemen:**
 
 -   +/-
 
@@ -43,7 +43,7 @@ Metrics to measure consistency among defensemen:
 
 -   Takeaways? Giveaways?
 
-Metrics to measure consistency among goalies:
+**Metrics to measure consistency among goalies:**
 
 -   Save percentage
 
