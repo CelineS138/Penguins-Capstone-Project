@@ -185,15 +185,18 @@ long_misc_df_exp <- long_misc_df |>
          
          # std_ops_diff = log(total_ops_diff),
          
-         std_p_m_diff = log(total_p_m_diff),
+         # std_p_m_diff = log(total_p_m_diff),
          
-            consistency_score = round(sum(0.5 * total_ptspg_diff, 0.2 * total_ops_diff, 0.3 * std_p_m_diff), 3)
+            consistency_score = sum(0.5 * total_ptspg_diff, 0.2 * total_ops_diff, 0.3 * total_p_m_diff)
   )
 
 
 long_misc_df_exp <- long_misc_df_exp |> full_join(player_pos)
 
 long_misc_df_exp <- long_misc_df_exp |> full_join(num_seasons) |> select(-n)
+
+long_misc_df_exp <- long_misc_df_exp |> 
+  mutate(consistency_score = round(consistency_score / num_seasons, 3))
 ```
 
 
@@ -243,13 +246,13 @@ long_misc_df_exp |>
     x = "Preliminary Consistency Score",
     y = "Players",
     caption = "Data courtesy of Hockey-Reference"
-  )
-  # scale_x_continuous(limits = c(0, 9), n.breaks = 6)
+  ) +
+  scale_x_continuous(n.breaks = 6)
 
 
 long_misc_df_exp |> 
-  filter(Pos == "F", num_seasons >= 4) |> 
-  filter(consistency_score >= 0) |> 
+  filter(Pos == "F", num_seasons >= 6) |> 
+  filter(consistency_score >= 0.5) |> 
   group_by(Player) |> 
   arrange(consistency_score) |> 
   head(n = 10) |> 
@@ -265,6 +268,9 @@ long_misc_df_exp |>
   # scale_x_continuous(limits = c(0, 0.6), n.breaks = 7)
 
 ```
+
+
+
 
 
 
