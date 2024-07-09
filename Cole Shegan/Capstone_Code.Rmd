@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(broom)
-library(hockeyR)
+# library(hockeyR)
 ```
 
 
@@ -53,24 +53,23 @@ basic_2017_18 <- read_csv("../Data/Basic Stats/basic_stats_17_18.csv") |>
 
 basic_2016_17 <- read_csv("../Data/Basic Stats/basic_stats_16_17.csv") |> 
   rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |> mutate(start_year = 2016)
-```
 
-
-
-```{r}
 basic_df <- rbind(basic_2016_17, basic_2017_18, basic_2018_19, basic_2019_20, basic_2020_21, basic_2021_22, basic_2022_23, basic_2023_24)
+
+basic_df <- basic_df |> 
+  filter(Pos != "G", GP >= 20)
 ```
 
 
 
 ```{r}
 long_basic_df <- basic_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, `+/-`, `S%`, PS), names_from = start_year)
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, `+/-`, TOI, `S%`, PS), names_from = start_year) |> 
+  unique()
 
 long_basic_df <- long_basic_df %>% 
   unnest() %>% 
   replace(. == "NULL", NA)
-  # mutate(across(G_2023:PS_2016, ~replace_na(.x, 0)))
 
 # long_basic_df_exp <- long_basic_df |> 
 #   mutate(Gdiff_23_22 = abs(G_2023 - G_2022),
@@ -83,6 +82,8 @@ long_basic_df <- long_basic_df %>%
 #          ) |>
 #   group_by(Player, PlayerID) |>
 #   summarise(total_Gdiff = sum(Gdiff_23_22, Gdiff_22_21, Gdiff_21_20, Gdiff_20_19, Gdiff_19_18, Gdiff_18_17, Gdiff_17_16))
+
+long_basic_df <- long_basic_df |> arrange(Player, PlayerID)
 ```
 
 
@@ -115,22 +116,69 @@ advanced_2016_17 <- read_csv("../Data/Advanced Stats/advanced_stats_16_17.csv") 
 
 advanced_df <- rbind(advanced_2016_17, advanced_2017_18, advanced_2018_19, advanced_2019_20, advanced_2020_21, advanced_2021_22, advanced_2022_23, advanced_2023_24)
 
-advanced_df <- advanced_df |> filter(GP >= 20) |> select(Player, PlayerID, GP, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`)
+advanced_df <- advanced_df |> filter(GP >= 20, Pos != "G") |> unique()
 ```
 
 
 
 
 ```{r}
-long_adv_df <- advanced_df_df |> 
-  filter(Pos != "G", GP >= 20) |> 
-  pivot_wider(id_cols = c(Player), values_from = c(GP, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year)
+long_adv_df <- advanced_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GP, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year) |> 
+  unique()
 
 long_adv_df <- long_adv_df %>% 
   unnest() %>% 
   replace(. == "NULL", NA)
 ```
 
+
+
+```{r}
+toi_2023_24 <- read_csv("../Data/TOI Stats/toi_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+toi_2022_23 <- read_csv("../Data/TOI Stats/toi_stats_22_23.csv") |>
+  mutate(start_year = 2022)
+
+toi_2021_22 <- read_csv("../Data/TOI Stats/toi_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+toi_2020_21 <- read_csv("../Data/TOI Stats/toi_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+toi_2019_20 <- read_csv("../Data/TOI Stats/toi_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+toi_2018_19 <- read_csv("../Data/TOI Stats/toi_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+toi_2017_18 <- read_csv("../Data/TOI Stats/toi_stats_17_18.csv") |> 
+  mutate(start_year = 2017)
+
+toi_2016_17 <- read_csv("../Data/TOI Stats/toi_stats_16_17.csv") |> 
+  mutate(start_year = 2016)
+
+toi_df <- rbind(toi_2016_17, toi_2017_18, toi_2018_19, toi_2019_20, toi_2020_21, toi_2021_22, toi_2022_23, toi_2023_24)
+
+toi_df <- toi_df |> select(-`...7`, -`...12`, -`...17`)
+
+toi_df <- toi_df |> filter(Pos != "G", GP >= 20, PlayerID != "ahose02")
+```
+
+
+
+```{r}
+long_toi_df <- toi_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(`TOI (EV)`, `CF% Rel (EV)`, `GF/60 (EV)`, `GA/60 (EV)`, `TOI (PP)`, `CF% Rel (PP)`, `GF/60 (PP)`, `GA/60 (PP)`, `TOI (SH)`, `CF% Rel (SH)`, `GF/60 (SH)`, `GA/60 (SH)`), names_from = start_year) |> 
+  unique()
+
+long_toi_df <- long_toi_df %>% 
+  unnest() %>%
+  replace(. == "NULL", NA)
+
+long_toi_df <- long_toi_df |> arrange(Player, PlayerID)
+```
 
 
 
@@ -161,23 +209,23 @@ misc_2016_17 <- read_csv("../Data/Misc Stats/misc_stats_16_17.csv") |>
 
 misc_df <- rbind(misc_2016_17, misc_2017_18, misc_2018_19, misc_2019_20, misc_2020_21, misc_2021_22, misc_2022_23, misc_2023_24)
 
-misc_df <- misc_df |> 
-  mutate(Pos = str_extract(Pos, "[A-Z]"))
+misc_df <- misc_df |> filter(Pos != "G", GP >= 20)
 ```
 
 
 
 ```{r}
+misc_df_pos <- misc_df |> 
+  mutate(Pos = str_extract(Pos, "[A-Z]"))
+
 num_seasons <- misc_df |> 
-  filter(Pos != "G") |> 
-  group_by(Player) |> 
+  group_by(Player, PlayerID) |> 
   count() |> 
   ungroup() |> 
   mutate(num_seasons = n) |> 
   unique()
 
-player_pos <- misc_df |> 
-  filter(Pos != "G") |> 
+player_pos <- misc_df_pos |> 
   group_by(Player) |> 
   summarise(Pos = ifelse(Pos %in% c("C", "L", "R", "W", "F"), "F", "D")) |> 
   unique()
@@ -187,8 +235,7 @@ player_pos <- misc_df |>
 
 ```{r}
 long_misc_df <- misc_df |> 
-  filter(Pos != "G", GP >= 20) |> 
-  pivot_wider(id_cols = c(Player), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
 
 long_misc_df <- long_misc_df %>% 
   unnest() %>% 
@@ -225,24 +272,27 @@ long_misc_df_exp <- long_misc_df |>
          
          total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
          
-         total_p_m_diff = sum(p_m_diff_23_22, p_m_diff_22_21, p_m_diff_21_20, p_m_diff_20_19, p_m_diff_19_18, p_m_diff_18_17, p_m_diff_17_16, na.rm = TRUE),
-         
-         # std_ptspg_diff = abs(log(total_ptspg_diff)),
-         
-         # std_ops_diff = log(total_ops_diff),
-         
-         # std_p_m_diff = log(total_p_m_diff),
-         
-            consistency_score = sum(0.5 * total_ptspg_diff, 0.2 * total_ops_diff, 0.3 * total_p_m_diff)
+         total_p_m_diff = sum(p_m_diff_23_22, p_m_diff_22_21, p_m_diff_21_20, p_m_diff_20_19, p_m_diff_19_18, p_m_diff_18_17, p_m_diff_17_16, na.rm = TRUE)
   )
 
 
 long_misc_df_exp <- long_misc_df_exp |> full_join(player_pos)
 
 long_misc_df_exp <- long_misc_df_exp |> full_join(num_seasons) |> select(-n)
+```
 
-long_misc_df_exp <- long_misc_df_exp |> 
-  mutate(consistency_score = round(consistency_score / num_seasons, 3))
+
+
+```{r}
+complete_df3 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
+
+complete_df <- complete_df3[ , !duplicated(colnames(complete_df3))]
+```
+
+
+
+```{r}
+
 ```
 
 
@@ -279,41 +329,60 @@ long_misc_df_exp |>
 
 
 
-long_misc_df_exp |> 
-  filter(Pos == "F", num_seasons >= 4, consistency_score != Inf) |> 
-  group_by(Player) |> 
-  arrange(desc(consistency_score)) |> 
-  head(n = 10) |> 
-  ggplot(aes(y = reorder(Player, consistency_score), x = consistency_score)) +
-  geom_col(fill = "purple") +
-  geom_label(aes(label = consistency_score), size = 5) +
-  theme_bw() +
-  labs(
-    x = "Preliminary Consistency Score",
-    y = "Players",
-    caption = "Data courtesy of Hockey-Reference"
-  ) +
-  scale_x_continuous(n.breaks = 6)
-
-
-long_misc_df_exp |> 
-  filter(Pos == "F", num_seasons >= 6) |> 
-  filter(consistency_score >= 0.5) |> 
-  group_by(Player) |> 
-  arrange(consistency_score) |> 
-  head(n = 10) |> 
-  ggplot(aes(y = reorder(Player, -consistency_score), x = consistency_score)) +
-  geom_col(fill = "purple") +
-  geom_label(aes(label = consistency_score), size = 5) +
-  theme_bw() +
-  labs(
-    x = "Preliminary Consistency Score",
-    y = "Players",
-    caption = "Data courtesy of Hockey-Reference"
-  )
+# long_misc_df_exp |> 
+#   filter(Pos == "F", num_seasons >= 4, consistency_score != Inf) |> 
+#   group_by(Player) |> 
+#   arrange(desc(consistency_score)) |> 
+#   head(n = 10) |> 
+#   ggplot(aes(y = reorder(Player, consistency_score), x = consistency_score)) +
+#   geom_col(fill = "purple") +
+#   geom_label(aes(label = consistency_score), size = 5) +
+#   theme_bw() +
+#   labs(
+#     x = "Preliminary Consistency Score",
+#     y = "Players",
+#     caption = "Data courtesy of Hockey-Reference"
+#   ) +
+#   scale_x_continuous(n.breaks = 6)
+# 
+# 
+# long_misc_df_exp |> 
+#   filter(Pos == "F", num_seasons >= 6) |> 
+#   filter(consistency_score >= 0.5) |> 
+#   group_by(Player) |> 
+#   arrange(consistency_score) |> 
+#   head(n = 10) |> 
+#   ggplot(aes(y = reorder(Player, -consistency_score), x = consistency_score)) +
+#   geom_col(fill = "purple") +
+#   geom_label(aes(label = consistency_score), size = 5) +
+#   theme_bw() +
+#   labs(
+#     x = "Preliminary Consistency Score",
+#     y = "Players",
+#     caption = "Data courtesy of Hockey-Reference"
+#   )
   # scale_x_continuous(limits = c(0, 0.6), n.breaks = 7)
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
