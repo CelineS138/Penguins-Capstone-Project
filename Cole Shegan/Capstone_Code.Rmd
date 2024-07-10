@@ -64,7 +64,7 @@ basic_df <- basic_df |>
 
 ```{r}
 long_basic_df <- basic_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, `+/-`, TOI, `S%`, PS), names_from = start_year) |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, EVG, PPG, SHG, EVA, PPA, SHA, `+/-`, TOI, `S%`, PS), names_from = start_year) |> 
   unique()
 
 long_basic_df <- long_basic_df %>% 
@@ -124,7 +124,7 @@ advanced_df <- advanced_df |> filter(GP >= 20, Pos != "G") |> unique()
 
 ```{r}
 long_adv_df <- advanced_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GP, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year) |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GP, CF, CA, FF, FA, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year) |> 
   unique()
 
 long_adv_df <- long_adv_df %>% 
@@ -226,7 +226,7 @@ num_seasons <- misc_df |>
   unique()
 
 player_pos <- misc_df_pos |> 
-  group_by(Player) |> 
+  group_by(Player, PlayerID) |> 
   summarise(Pos = ifelse(Pos %in% c("C", "L", "R", "W", "F"), "F", "D")) |> 
   unique()
 ```
@@ -242,58 +242,195 @@ long_misc_df <- long_misc_df %>%
   replace(. == "NULL", NA)
   # mutate(across(`G/GP_2023`:`PS_2016`, ~replace_na(.x, 0)))
 
-long_misc_df_exp <- long_misc_df |>
-  group_by(Player) |> 
-  summarise(ptspg_diff_23_22 = abs(`PTS/GP_2023` - `PTS/GP_2022`),
-         ptspg_diff_22_21 = abs(`PTS/GP_2022` - `PTS/GP_2021`),
-         ptspg_diff_21_20 = abs(`PTS/GP_2021` - `PTS/GP_2020`),
-         ptspg_diff_20_19 = abs(`PTS/GP_2020` - `PTS/GP_2019`),
-         ptspg_diff_19_18 = abs(`PTS/GP_2019` - `PTS/GP_2018`),
-         ptspg_diff_18_17 = abs(`PTS/GP_2018` - `PTS/GP_2017`),
-         ptspg_diff_17_16 = abs(`PTS/GP_2017` - `PTS/GP_2016`),
-         
-         ops_diff_23_22 = abs(OPS_2023 - OPS_2022),
-         ops_diff_22_21 = abs(OPS_2022 - OPS_2021),
-         ops_diff_21_20 = abs(OPS_2021 - OPS_2020),
-         ops_diff_20_19 = abs(OPS_2020 - OPS_2019),
-         ops_diff_19_18 = abs(OPS_2019 - OPS_2018),
-         ops_diff_18_17 = abs(OPS_2018 - OPS_2017),
-         ops_diff_17_16 = abs(OPS_2017 - OPS_2016),
-         
-         p_m_diff_23_22 = abs(`+/-_2023` - `+/-_2022`),
-         p_m_diff_22_21 = abs(`+/-_2022` - `+/-_2021`),
-         p_m_diff_21_20 = abs(`+/-_2021` - `+/-_2020`),
-         p_m_diff_20_19 = abs(`+/-_2020` - `+/-_2019`),
-         p_m_diff_19_18 = abs(`+/-_2019` - `+/-_2018`),
-         p_m_diff_18_17 = abs(`+/-_2018` - `+/-_2017`),
-         p_m_diff_17_16 = abs(`+/-_2017` - `+/-_2016`),
-         
-         total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16, na.rm = TRUE),
-         
-         total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
-         
-         total_p_m_diff = sum(p_m_diff_23_22, p_m_diff_22_21, p_m_diff_21_20, p_m_diff_20_19, p_m_diff_19_18, p_m_diff_18_17, p_m_diff_17_16, na.rm = TRUE)
-  )
-
-
-long_misc_df_exp <- long_misc_df_exp |> full_join(player_pos)
-
-long_misc_df_exp <- long_misc_df_exp |> full_join(num_seasons) |> select(-n)
+# long_misc_df_exp <- long_misc_df |>
+#   group_by(Player) |> 
+#   summarise(ptspg_diff_23_22 = abs(`PTS/GP_2023` - `PTS/GP_2022`),
+#          ptspg_diff_22_21 = abs(`PTS/GP_2022` - `PTS/GP_2021`),
+#          ptspg_diff_21_20 = abs(`PTS/GP_2021` - `PTS/GP_2020`),
+#          ptspg_diff_20_19 = abs(`PTS/GP_2020` - `PTS/GP_2019`),
+#          ptspg_diff_19_18 = abs(`PTS/GP_2019` - `PTS/GP_2018`),
+#          ptspg_diff_18_17 = abs(`PTS/GP_2018` - `PTS/GP_2017`),
+#          ptspg_diff_17_16 = abs(`PTS/GP_2017` - `PTS/GP_2016`),
+#          
+#          ops_diff_23_22 = abs(OPS_2023 - OPS_2022),
+#          ops_diff_22_21 = abs(OPS_2022 - OPS_2021),
+#          ops_diff_21_20 = abs(OPS_2021 - OPS_2020),
+#          ops_diff_20_19 = abs(OPS_2020 - OPS_2019),
+#          ops_diff_19_18 = abs(OPS_2019 - OPS_2018),
+#          ops_diff_18_17 = abs(OPS_2018 - OPS_2017),
+#          ops_diff_17_16 = abs(OPS_2017 - OPS_2016),
+#          
+#          p_m_diff_23_22 = abs(`+/-_2023` - `+/-_2022`),
+#          p_m_diff_22_21 = abs(`+/-_2022` - `+/-_2021`),
+#          p_m_diff_21_20 = abs(`+/-_2021` - `+/-_2020`),
+#          p_m_diff_20_19 = abs(`+/-_2020` - `+/-_2019`),
+#          p_m_diff_19_18 = abs(`+/-_2019` - `+/-_2018`),
+#          p_m_diff_18_17 = abs(`+/-_2018` - `+/-_2017`),
+#          p_m_diff_17_16 = abs(`+/-_2017` - `+/-_2016`),
+#          
+#          total_ptspg_diff = sum(ptspg_diff_23_22, ptspg_diff_22_21, ptspg_diff_21_20, ptspg_diff_20_19, ptspg_diff_19_18, ptspg_diff_18_17, ptspg_diff_17_16, na.rm = TRUE),
+#          
+#          total_ops_diff = sum(ops_diff_23_22, ops_diff_22_21, ops_diff_21_20, ops_diff_20_19, ops_diff_19_18, ops_diff_18_17, ops_diff_17_16, na.rm = TRUE),
+#          
+#          total_p_m_diff = sum(p_m_diff_23_22, p_m_diff_22_21, p_m_diff_21_20, p_m_diff_20_19, p_m_diff_19_18, p_m_diff_18_17, p_m_diff_17_16, na.rm = TRUE)
+#   )
 ```
 
 
 
-```{r}
+```{r, Making Complete Dataset}
 complete_df3 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
 
 complete_df <- complete_df3[ , !duplicated(colnames(complete_df3))]
+
+complete_df <- complete_df |> full_join(player_pos)
+
+complete_df <- complete_df |> full_join(num_seasons) |> select(-n)
+
+
+complete_df_sel <- complete_df |> 
+  filter(num_seasons >= 5)
 ```
 
 
 
 ```{r}
+playmaker <- complete_df_sel |> select(Player, PlayerID, starts_with("TOI_"), starts_with("A_"), contains("EVA_"), contains("PPA_"), contains("SHA_"))
 
+playmaker <- playmaker |> 
+  group_by(Player, PlayerID) |> 
+  summarise(
+    `EVA/60_2023` = (EVA_2023 / TOI_2023) * 60,
+    `EVA/60_2022` = (EVA_2022 / TOI_2022) * 60,
+    `EVA/60_2021` = (EVA_2021 / TOI_2021) * 60,
+    `EVA/60_2020` = (EVA_2020 / TOI_2020) * 60,
+    `EVA/60_2019` = (EVA_2019 / TOI_2019) * 60,
+    `EVA/60_2018` = (EVA_2018 / TOI_2018) * 60,
+    `EVA/60_2017` = (EVA_2017 / TOI_2017) * 60,
+    `EVA/60_2016` = (EVA_2016 / TOI_2016) * 60,
+    
+    `PPA/60_2023` = (PPA_2023 / TOI_2023) * 60,
+    `PPA/60_2022` = (PPA_2022 / TOI_2022) * 60,
+    `PPA/60_2021` = (PPA_2021 / TOI_2021) * 60,
+    `PPA/60_2020` = (PPA_2020 / TOI_2020) * 60,
+    `PPA/60_2019` = (PPA_2019 / TOI_2019) * 60,
+    `PPA/60_2018` = (PPA_2018 / TOI_2018) * 60,
+    `PPA/60_2017` = (PPA_2017 / TOI_2017) * 60,
+    `PPA/60_2016` = (PPA_2016 / TOI_2016) * 60,
+    
+    `SHA/60_2023` = (SHA_2023 / TOI_2023) * 60,
+    `SHA/60_2022` = (SHA_2022 / TOI_2022) * 60,
+    `SHA/60_2021` = (SHA_2021 / TOI_2021) * 60,
+    `SHA/60_2020` = (SHA_2020 / TOI_2020) * 60,
+    `SHA/60_2019` = (SHA_2019 / TOI_2019) * 60,
+    `SHA/60_2018` = (SHA_2018 / TOI_2018) * 60,
+    `SHA/60_2017` = (SHA_2017 / TOI_2017) * 60,
+    `SHA/60_2016` = (SHA_2016 / TOI_2016) * 60,
+         )
+
+playmaker <- playmaker |> 
+  group_by(Player, PlayerID) |> 
+  mutate(
+    
+    )
+
+playmaker <- playmaker |> 
+  ungroup() |> 
+  mutate(mean_EVA_23 = mean(`EVA/60_2023`),
+         mean_EVA_22 = mean(`EVA/60_2022`),
+         mean_EVA_21 = mean(`EVA/60_2021`),
+         mean_EVA_20 = mean(`EVA/60_2020`),
+         mean_EVA_19 = mean(`EVA/60_2019`),
+         mean_EVA_18 = mean(`EVA/60_2018`),
+         mean_EVA_17 = mean(`EVA/60_2017`),
+         mean_EVA_16 = mean(`EVA/60_2016`),
+         
+         mean_PPA_23 = mean(`PPA/60_2023`),
+         mean_PPA_22 = mean(`PPA/60_2022`),
+         mean_PPA_21 = mean(`PPA/60_2021`),
+         mean_PPA_20 = mean(`PPA/60_2020`),
+         mean_PPA_19 = mean(`PPA/60_2019`),
+         mean_PPA_18 = mean(`PPA/60_2018`),
+         mean_PPA_17 = mean(`PPA/60_2017`),
+         mean_PPA_16 = mean(`PPA/60_2016`),
+         
+         mean_SHA_23 = mean(`SHA/60_2023`),
+         mean_SHA_22 = mean(`SHA/60_2022`),
+         mean_SHA_21 = mean(`SHA/60_2021`),
+         mean_SHA_20 = mean(`SHA/60_2020`),
+         mean_SHA_19 = mean(`SHA/60_2019`),
+         mean_SHA_18 = mean(`SHA/60_2018`),
+         mean_SHA_17 = mean(`SHA/60_2017`),
+         mean_SHA_16 = mean(`SHA/60_2016`),
+         
+         
+         sd_EVA_23 = sd(`EVA/60_2023`),
+         sd_EVA_22 = sd(`EVA/60_2022`),
+         sd_EVA_21 = sd(`EVA/60_2021`),
+         sd_EVA_20 = sd(`EVA/60_2020`),
+         sd_EVA_19 = sd(`EVA/60_2019`),
+         sd_EVA_18 = sd(`EVA/60_2018`),
+         sd_EVA_17 = sd(`EVA/60_2017`),
+         sd_EVA_16 = sd(`EVA/60_2016`),
+         
+         sd_PPA_23 = sd(`PPA/60_2023`),
+         sd_PPA_22 = sd(`PPA/60_2022`),
+         sd_PPA_21 = sd(`PPA/60_2021`),
+         sd_PPA_20 = sd(`PPA/60_2020`),
+         sd_PPA_19 = sd(`PPA/60_2019`),
+         sd_PPA_18 = sd(`PPA/60_2018`),
+         sd_PPA_17 = sd(`PPA/60_2017`),
+         sd_PPA_16 = sd(`PPA/60_2016`),
+         
+         sd_SHA_23 = sd(`SHA/60_2023`),
+         sd_SHA_22 = sd(`SHA/60_2022`),
+         sd_SHA_21 = sd(`SHA/60_2021`),
+         sd_SHA_20 = sd(`SHA/60_2020`),
+         sd_SHA_19 = sd(`SHA/60_2019`),
+         sd_SHA_18 = sd(`SHA/60_2018`),
+         sd_SHA_17 = sd(`SHA/60_2017`),
+         sd_SHA_16 = sd(`SHA/60_2016`),
+         )
+
+
+playmaker_score <- playmaker |> 
+  group_by(Player, PlayerID) |> 
+  summarise(
+    EVA_z_score = (total_EVA_diff - mean_tot_EVA_diff) / sd_tot_EVA_diff,
+    PPA_z_score = (total_PPA_diff - mean_tot_PPA_diff) / sd_tot_PPA_diff,
+    SHA_z_score = (total_SHA_diff - mean_tot_SHA_diff) / sd_tot_SHA_diff
+            )
 ```
+
+
+
+```{r}
+high_z_score <- playmaker_score |> 
+  arrange(desc(EVA_z_score)) |> 
+  head(10)
+
+low_z_score <- playmaker_score |> 
+  arrange(EVA_z_score) |> 
+  head(10)
+
+good_consistency <- playmaker_score |> 
+  filter(EVA_z_score <= 0.1, EVA_z_score >= -0.1)
+```
+
+
+
+
+```{r}
+high_z_score |> 
+  ggplot(aes(EVA_z_score, reorder(Player, EVA_z_score))) +
+  geom_col()
+
+low_z_score |> 
+  ggplot(aes(EVA_z_score, reorder(Player, EVA_z_score))) +
+  geom_col()
+```
+
+
 
 
 
