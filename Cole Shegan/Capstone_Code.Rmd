@@ -295,9 +295,9 @@ complete_df_sel <- complete_df |>
 
 
 ```{r}
-playmaker <- complete_df_sel |> select(Player, PlayerID, starts_with("TOI_"), starts_with("A_"), contains("EVA_"), contains("PPA_"), contains("SHA_"))
+playmaker <- complete_df_sel |> select(Player, PlayerID, starts_with("TOI_"), contains("EVA_"), contains("PPA_"), contains("SHA_"))
 
-playmaker <- playmaker |> 
+playmaker2 <- playmaker |> 
   group_by(Player, PlayerID) |> 
   summarise(
     `EVA/60_2023` = (EVA_2023 / TOI_2023) * 60,
@@ -328,78 +328,101 @@ playmaker <- playmaker |>
     `SHA/60_2016` = (SHA_2016 / TOI_2016) * 60,
          )
 
-playmaker <- playmaker |> 
-  group_by(Player, PlayerID) |> 
-  mutate(
-    
-    )
-
-playmaker <- playmaker |> 
+playmaker3 <- playmaker2 |> 
   ungroup() |> 
-  mutate(mean_EVA_23 = mean(`EVA/60_2023`),
-         mean_EVA_22 = mean(`EVA/60_2022`),
-         mean_EVA_21 = mean(`EVA/60_2021`),
-         mean_EVA_20 = mean(`EVA/60_2020`),
-         mean_EVA_19 = mean(`EVA/60_2019`),
-         mean_EVA_18 = mean(`EVA/60_2018`),
-         mean_EVA_17 = mean(`EVA/60_2017`),
-         mean_EVA_16 = mean(`EVA/60_2016`),
+  mutate(mean_EVA_23 = mean(`EVA/60_2023`, na.rm = TRUE),
+         mean_EVA_22 = mean(`EVA/60_2022`, na.rm = TRUE),
+         mean_EVA_21 = mean(`EVA/60_2021`, na.rm = TRUE),
+         mean_EVA_20 = mean(`EVA/60_2020`, na.rm = TRUE),
+         mean_EVA_19 = mean(`EVA/60_2019`, na.rm = TRUE),
+         mean_EVA_18 = mean(`EVA/60_2018`, na.rm = TRUE),
+         mean_EVA_17 = mean(`EVA/60_2017`, na.rm = TRUE),
+         mean_EVA_16 = mean(`EVA/60_2016`, na.rm = TRUE),
          
-         mean_PPA_23 = mean(`PPA/60_2023`),
-         mean_PPA_22 = mean(`PPA/60_2022`),
-         mean_PPA_21 = mean(`PPA/60_2021`),
-         mean_PPA_20 = mean(`PPA/60_2020`),
-         mean_PPA_19 = mean(`PPA/60_2019`),
-         mean_PPA_18 = mean(`PPA/60_2018`),
-         mean_PPA_17 = mean(`PPA/60_2017`),
-         mean_PPA_16 = mean(`PPA/60_2016`),
+         mean_PPA_23 = mean(`PPA/60_2023`, na.rm = TRUE),
+         mean_PPA_22 = mean(`PPA/60_2022`, na.rm = TRUE),
+         mean_PPA_21 = mean(`PPA/60_2021`, na.rm = TRUE),
+         mean_PPA_20 = mean(`PPA/60_2020`, na.rm = TRUE),
+         mean_PPA_19 = mean(`PPA/60_2019`, na.rm = TRUE),
+         mean_PPA_18 = mean(`PPA/60_2018`, na.rm = TRUE),
+         mean_PPA_17 = mean(`PPA/60_2017`, na.rm = TRUE),
+         mean_PPA_16 = mean(`PPA/60_2016`, na.rm = TRUE),
          
-         mean_SHA_23 = mean(`SHA/60_2023`),
-         mean_SHA_22 = mean(`SHA/60_2022`),
-         mean_SHA_21 = mean(`SHA/60_2021`),
-         mean_SHA_20 = mean(`SHA/60_2020`),
-         mean_SHA_19 = mean(`SHA/60_2019`),
-         mean_SHA_18 = mean(`SHA/60_2018`),
-         mean_SHA_17 = mean(`SHA/60_2017`),
-         mean_SHA_16 = mean(`SHA/60_2016`),
+         mean_SHA_23 = mean(`SHA/60_2023`, na.rm = TRUE),
+         mean_SHA_22 = mean(`SHA/60_2022`, na.rm = TRUE),
+         mean_SHA_21 = mean(`SHA/60_2021`, na.rm = TRUE),
+         mean_SHA_20 = mean(`SHA/60_2020`, na.rm = TRUE),
+         mean_SHA_19 = mean(`SHA/60_2019`, na.rm = TRUE),
+         mean_SHA_18 = mean(`SHA/60_2018`, na.rm = TRUE),
+         mean_SHA_17 = mean(`SHA/60_2017`, na.rm = TRUE),
+         mean_SHA_16 = mean(`SHA/60_2016`, na.rm = TRUE),
          
          
-         sd_EVA_23 = sd(`EVA/60_2023`),
-         sd_EVA_22 = sd(`EVA/60_2022`),
-         sd_EVA_21 = sd(`EVA/60_2021`),
-         sd_EVA_20 = sd(`EVA/60_2020`),
-         sd_EVA_19 = sd(`EVA/60_2019`),
-         sd_EVA_18 = sd(`EVA/60_2018`),
-         sd_EVA_17 = sd(`EVA/60_2017`),
-         sd_EVA_16 = sd(`EVA/60_2016`),
+         sd_EVA_23 = sd(`EVA/60_2023`, na.rm = TRUE),
+         sd_EVA_22 = sd(`EVA/60_2022`, na.rm = TRUE),
+         sd_EVA_21 = sd(`EVA/60_2021`, na.rm = TRUE),
+         sd_EVA_20 = sd(`EVA/60_2020`, na.rm = TRUE),
+         sd_EVA_19 = sd(`EVA/60_2019`, na.rm = TRUE),
+         sd_EVA_18 = sd(`EVA/60_2018`, na.rm = TRUE),
+         sd_EVA_17 = sd(`EVA/60_2017`, na.rm = TRUE),
+         sd_EVA_16 = sd(`EVA/60_2016`, na.rm = TRUE),
          
-         sd_PPA_23 = sd(`PPA/60_2023`),
-         sd_PPA_22 = sd(`PPA/60_2022`),
-         sd_PPA_21 = sd(`PPA/60_2021`),
-         sd_PPA_20 = sd(`PPA/60_2020`),
-         sd_PPA_19 = sd(`PPA/60_2019`),
-         sd_PPA_18 = sd(`PPA/60_2018`),
-         sd_PPA_17 = sd(`PPA/60_2017`),
-         sd_PPA_16 = sd(`PPA/60_2016`),
+         sd_PPA_23 = sd(`PPA/60_2023`, na.rm = TRUE),
+         sd_PPA_22 = sd(`PPA/60_2022`, na.rm = TRUE),
+         sd_PPA_21 = sd(`PPA/60_2021`, na.rm = TRUE),
+         sd_PPA_20 = sd(`PPA/60_2020`, na.rm = TRUE),
+         sd_PPA_19 = sd(`PPA/60_2019`, na.rm = TRUE),
+         sd_PPA_18 = sd(`PPA/60_2018`, na.rm = TRUE),
+         sd_PPA_17 = sd(`PPA/60_2017`, na.rm = TRUE),
+         sd_PPA_16 = sd(`PPA/60_2016`, na.rm = TRUE),
          
-         sd_SHA_23 = sd(`SHA/60_2023`),
-         sd_SHA_22 = sd(`SHA/60_2022`),
-         sd_SHA_21 = sd(`SHA/60_2021`),
-         sd_SHA_20 = sd(`SHA/60_2020`),
-         sd_SHA_19 = sd(`SHA/60_2019`),
-         sd_SHA_18 = sd(`SHA/60_2018`),
-         sd_SHA_17 = sd(`SHA/60_2017`),
-         sd_SHA_16 = sd(`SHA/60_2016`),
+         sd_SHA_23 = sd(`SHA/60_2023`, na.rm = TRUE),
+         sd_SHA_22 = sd(`SHA/60_2022`, na.rm = TRUE),
+         sd_SHA_21 = sd(`SHA/60_2021`, na.rm = TRUE),
+         sd_SHA_20 = sd(`SHA/60_2020`, na.rm = TRUE),
+         sd_SHA_19 = sd(`SHA/60_2019`, na.rm = TRUE),
+         sd_SHA_18 = sd(`SHA/60_2018`, na.rm = TRUE),
+         sd_SHA_17 = sd(`SHA/60_2017`, na.rm = TRUE),
+         sd_SHA_16 = sd(`SHA/60_2016`, na.rm = TRUE),
          )
 
 
-playmaker_score <- playmaker |> 
+playmaker_score <- playmaker3 |> 
   group_by(Player, PlayerID) |> 
   summarise(
-    EVA_z_score = (total_EVA_diff - mean_tot_EVA_diff) / sd_tot_EVA_diff,
-    PPA_z_score = (total_PPA_diff - mean_tot_PPA_diff) / sd_tot_PPA_diff,
-    SHA_z_score = (total_SHA_diff - mean_tot_SHA_diff) / sd_tot_SHA_diff
+    EVA_zscore_23 = (`EVA/60_2023` - `mean_EVA_23`) / `sd_EVA_23`,
+    EVA_zscore_22 = (`EVA/60_2022` - `mean_EVA_22`) / `sd_EVA_22`,
+    EVA_zscore_21 = (`EVA/60_2021` - `mean_EVA_21`) / `sd_EVA_21`,
+    EVA_zscore_20 = (`EVA/60_2020` - `mean_EVA_20`) / `sd_EVA_20`,
+    EVA_zscore_19 = (`EVA/60_2019` - `mean_EVA_19`) / `sd_EVA_19`,
+    EVA_zscore_18 = (`EVA/60_2018` - `mean_EVA_18`) / `sd_EVA_18`,
+    EVA_zscore_17 = (`EVA/60_2017` - `mean_EVA_17`) / `sd_EVA_17`,
+    EVA_zscore_16 = (`EVA/60_2016` - `mean_EVA_16`) / `sd_EVA_16`,
+    
+    PPA_zscore_23 = (`PPA/60_2023` - `mean_PPA_23`) / `sd_PPA_23`,
+    PPA_zscore_22 = (`PPA/60_2022` - `mean_PPA_22`) / `sd_PPA_22`,
+    PPA_zscore_21 = (`PPA/60_2021` - `mean_PPA_21`) / `sd_PPA_21`,
+    PPA_zscore_20 = (`PPA/60_2020` - `mean_PPA_20`) / `sd_PPA_20`,
+    PPA_zscore_19 = (`PPA/60_2019` - `mean_PPA_19`) / `sd_PPA_19`,
+    PPA_zscore_18 = (`PPA/60_2018` - `mean_PPA_18`) / `sd_PPA_18`,
+    PPA_zscore_17 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
+    PPA_zscore_16 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
+    
+    SHA_zscore_23 = (`SHA/60_2023` - `mean_SHA_23`) / `sd_SHA_23`,
+    SHA_zscore_22 = (`SHA/60_2022` - `mean_SHA_22`) / `sd_SHA_22`,
+    SHA_zscore_21 = (`SHA/60_2021` - `mean_SHA_21`) / `sd_SHA_21`,
+    SHA_zscore_20 = (`SHA/60_2020` - `mean_SHA_20`) / `sd_SHA_20`,
+    SHA_zscore_19 = (`SHA/60_2019` - `mean_SHA_19`) / `sd_SHA_19`,
+    SHA_zscore_18 = (`SHA/60_2018` - `mean_SHA_18`) / `sd_SHA_18`,
+    SHA_zscore_17 = (`SHA/60_2017` - `mean_SHA_17`) / `sd_SHA_17`,
+    SHA_zscore_16 = (`SHA/60_2016` - `mean_SHA_16`) / `sd_SHA_16`
             )
+
+
+# playmaker_score |> 
+#   pivot_longer()
+
+
 ```
 
 
