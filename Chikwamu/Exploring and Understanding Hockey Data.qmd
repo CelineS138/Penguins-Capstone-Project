@@ -84,7 +84,7 @@ basic_2023_24 <- read_csv("https://raw.githubusercontent.com/CelineS138/Penguins
 basic_2023_24
 ```
 
-## Data
+##Data
 
 ### Basic Statistics
 
@@ -125,17 +125,15 @@ mutate(start_year = 2017)
 basic_2016_17 <- read_csv("https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_16_17.csv") |>
 rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |>
 mutate(start_year = 2016)
+# combined basic stats
+basic_df <- rbind(basic_2023_24, basic_2022_23, basic_2021_22, basic_2020_21, basic_2021_22, 
+                     basic_2020_21, basic_2019_20, basic_2018_19, basic_2017_18, basic_2016_17)
 ```
 
-### combined basic stats
 
-```{r}
-wd 
-```
 
 ```{r}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
-
 long_basic_df <- basic_df |> 
   pivot_wider(id_cols = c(Player, PlayerID), 
               values_from = c(G, A, PTS, `+/-`, `S%`, PS), 
@@ -143,11 +141,11 @@ long_basic_df <- basic_df |>
 
 long_basic_df <- long_basic_df |>
   unnest() |> 
-  replace(. == "NULL", NA)
-  # mutate(across(G_2023:PS_2016, ~replace_na(.x, 0)))
+  mutate(across(everything(), ~ifelse(. == "NULL", NA, .)))
 
 long_basic_df <- long_basic_df |> 
   unique()
+
 ```
 
 ### Miscellaneous Statistics
@@ -248,3 +246,33 @@ advanced_2016_17 <- read_csv("https://raw.githubusercontent.com/CelineS138/Pengu
 mutate(start_year = 2016)
 advanced_df <- rbind(advanced_2023_24, advanced_2022_23, advanced_2021_22, advanced_2020_21, advanced_2019_20, advanced_2018_19, advanced_2017_18, advanced_2016_17)
 ```
+
+ ## Analysis
+ 
+```{r}
+library(dplyr)
+
+# Calculate league averages for points per game and time on ice per game each year
+league_avg_stats <- long_basic_df |>
+  group_by(start_year)|>
+  summarise(
+    league_avg_pts_per_gp = mean(PTS/GP, na.rm = TRUE),
+    league_avg_toi_per_gp = mean(TOI/GP, na.rm = TRUE)
+  )
+
+# Join the averages back to the original data and calculate normalized metrics
+basic_df <- long_basic_df|>
+  left_join(league_avg_stats, by = "start_year") |>
+  mutate(
+    norm_pts_per_gp = (PTS/GP) / league_avg_pts_per_gp,
+    norm_toi_per_gp = (TOI/GP) / league_avg_toi_per_gp
+  )
+
+# Display the resulting dataframe
+print(basic_df)
+
+```
+ 
+
+ 
+ 
