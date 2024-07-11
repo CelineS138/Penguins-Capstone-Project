@@ -390,67 +390,55 @@ playmaker3 <- playmaker2 |>
 playmaker_score <- playmaker3 |> 
   group_by(Player, PlayerID) |> 
   summarise(
-    EVA_zscore_23 = (`EVA/60_2023` - `mean_EVA_23`) / `sd_EVA_23`,
-    EVA_zscore_22 = (`EVA/60_2022` - `mean_EVA_22`) / `sd_EVA_22`,
-    EVA_zscore_21 = (`EVA/60_2021` - `mean_EVA_21`) / `sd_EVA_21`,
-    EVA_zscore_20 = (`EVA/60_2020` - `mean_EVA_20`) / `sd_EVA_20`,
-    EVA_zscore_19 = (`EVA/60_2019` - `mean_EVA_19`) / `sd_EVA_19`,
-    EVA_zscore_18 = (`EVA/60_2018` - `mean_EVA_18`) / `sd_EVA_18`,
-    EVA_zscore_17 = (`EVA/60_2017` - `mean_EVA_17`) / `sd_EVA_17`,
-    EVA_zscore_16 = (`EVA/60_2016` - `mean_EVA_16`) / `sd_EVA_16`,
+    EVA_zscore_2023 = (`EVA/60_2023` - `mean_EVA_23`) / `sd_EVA_23`,
+    EVA_zscore_2022 = (`EVA/60_2022` - `mean_EVA_22`) / `sd_EVA_22`,
+    EVA_zscore_2021 = (`EVA/60_2021` - `mean_EVA_21`) / `sd_EVA_21`,
+    EVA_zscore_2020 = (`EVA/60_2020` - `mean_EVA_20`) / `sd_EVA_20`,
+    EVA_zscore_2019 = (`EVA/60_2019` - `mean_EVA_19`) / `sd_EVA_19`,
+    EVA_zscore_2018 = (`EVA/60_2018` - `mean_EVA_18`) / `sd_EVA_18`,
+    EVA_zscore_2017 = (`EVA/60_2017` - `mean_EVA_17`) / `sd_EVA_17`,
+    EVA_zscore_2016 = (`EVA/60_2016` - `mean_EVA_16`) / `sd_EVA_16`,
     
-    PPA_zscore_23 = (`PPA/60_2023` - `mean_PPA_23`) / `sd_PPA_23`,
-    PPA_zscore_22 = (`PPA/60_2022` - `mean_PPA_22`) / `sd_PPA_22`,
-    PPA_zscore_21 = (`PPA/60_2021` - `mean_PPA_21`) / `sd_PPA_21`,
-    PPA_zscore_20 = (`PPA/60_2020` - `mean_PPA_20`) / `sd_PPA_20`,
-    PPA_zscore_19 = (`PPA/60_2019` - `mean_PPA_19`) / `sd_PPA_19`,
-    PPA_zscore_18 = (`PPA/60_2018` - `mean_PPA_18`) / `sd_PPA_18`,
-    PPA_zscore_17 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
-    PPA_zscore_16 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
+    PPA_zscore_2023 = (`PPA/60_2023` - `mean_PPA_23`) / `sd_PPA_23`,
+    PPA_zscore_2022 = (`PPA/60_2022` - `mean_PPA_22`) / `sd_PPA_22`,
+    PPA_zscore_2021 = (`PPA/60_2021` - `mean_PPA_21`) / `sd_PPA_21`,
+    PPA_zscore_2020 = (`PPA/60_2020` - `mean_PPA_20`) / `sd_PPA_20`,
+    PPA_zscore_2019 = (`PPA/60_2019` - `mean_PPA_19`) / `sd_PPA_19`,
+    PPA_zscore_2018 = (`PPA/60_2018` - `mean_PPA_18`) / `sd_PPA_18`,
+    PPA_zscore_2017 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
+    PPA_zscore_2016 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
     
-    SHA_zscore_23 = (`SHA/60_2023` - `mean_SHA_23`) / `sd_SHA_23`,
-    SHA_zscore_22 = (`SHA/60_2022` - `mean_SHA_22`) / `sd_SHA_22`,
-    SHA_zscore_21 = (`SHA/60_2021` - `mean_SHA_21`) / `sd_SHA_21`,
-    SHA_zscore_20 = (`SHA/60_2020` - `mean_SHA_20`) / `sd_SHA_20`,
-    SHA_zscore_19 = (`SHA/60_2019` - `mean_SHA_19`) / `sd_SHA_19`,
-    SHA_zscore_18 = (`SHA/60_2018` - `mean_SHA_18`) / `sd_SHA_18`,
-    SHA_zscore_17 = (`SHA/60_2017` - `mean_SHA_17`) / `sd_SHA_17`,
-    SHA_zscore_16 = (`SHA/60_2016` - `mean_SHA_16`) / `sd_SHA_16`
+    SHA_zscore_2023 = (`SHA/60_2023` - `mean_SHA_23`) / `sd_SHA_23`,
+    SHA_zscore_2022 = (`SHA/60_2022` - `mean_SHA_22`) / `sd_SHA_22`,
+    SHA_zscore_2021 = (`SHA/60_2021` - `mean_SHA_21`) / `sd_SHA_21`,
+    SHA_zscore_2020 = (`SHA/60_2020` - `mean_SHA_20`) / `sd_SHA_20`,
+    SHA_zscore_2019 = (`SHA/60_2019` - `mean_SHA_19`) / `sd_SHA_19`,
+    SHA_zscore_2018 = (`SHA/60_2018` - `mean_SHA_18`) / `sd_SHA_18`,
+    SHA_zscore_2017 = (`SHA/60_2017` - `mean_SHA_17`) / `sd_SHA_17`,
+    SHA_zscore_2016 = (`SHA/60_2016` - `mean_SHA_16`) / `sd_SHA_16`
             )
 
 
-# playmaker_score |> 
-#   pivot_longer()
-
-
 ```
 
 
 
 ```{r}
-high_z_score <- playmaker_score |> 
-  arrange(desc(EVA_z_score)) |> 
-  head(10)
-
-low_z_score <- playmaker_score |> 
-  arrange(EVA_z_score) |> 
-  head(10)
-
-good_consistency <- playmaker_score |> 
-  filter(EVA_z_score <= 0.1, EVA_z_score >= -0.1)
+master_playmaker <- playmaker_score |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_")
 ```
 
 
 
-
 ```{r}
-high_z_score |> 
-  ggplot(aes(EVA_z_score, reorder(Player, EVA_z_score))) +
-  geom_col()
-
-low_z_score |> 
-  ggplot(aes(EVA_z_score, reorder(Player, EVA_z_score))) +
-  geom_col()
+master_playmaker |> 
+  mutate(Groupings = ifelse(EVA <= 0.5 & EVA >= -0.5, "Consistent", "Inconsistent")) |> 
+  ggplot(aes(x = Year, y = EVA)) +
+  geom_point(aes(fill = Groupings)) +
+  geom_hline(yintercept = 0.5, fill = "red", linetype = "dashed")
 ```
 
 
