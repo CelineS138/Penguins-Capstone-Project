@@ -90,7 +90,7 @@ advanced_df <- advanced_df |>
   unique()
 
 long_adv_df <- advanced_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GP, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year) |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GP, CF, CA, FF, FA, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), names_from = start_year) |> 
   unique()
 
 long_adv_df <- long_adv_df %>% 
@@ -201,7 +201,6 @@ long_toi_df <- long_toi_df %>%
 long_toi_df <- long_toi_df |> arrange(Player, PlayerID)
 
 
-
 # Combined Data
 
 complete_df3 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
@@ -219,7 +218,7 @@ complete_df_sel <- complete_df |>
 
 ## Data manipulation
 scorer <- complete_df_sel |> 
-  select(Player, PlayerID, starts_with("TOI_"), starts_with("G_"), contains("EVG_"), contains("PPA_"))
+  select(Player, PlayerID, starts_with("TOI_"), starts_with("GC"), contains("EVG_"), contains("PPA_"))
 
 scorer_60 <- scorer |> 
   group_by(Player, PlayerID) |> 
@@ -241,72 +240,72 @@ scorer_60 <- scorer |>
             `PPA/60_2017` = (PPA_2017 / TOI_2017) * 60,
             `PPA/60_2016` = (PPA_2016 / TOI_2016) * 60,
             
-            `G/60_2023` = (G_2023 / TOI_2023) * 60,
-            `G/60_2022` = (G_2022 / TOI_2022) * 60,
-            `G/60_2021` = (G_2021 / TOI_2021) * 60,
-            `G/60_2020` = (G_2020 / TOI_2020) * 60,
-            `G/60_2019` = (G_2019 / TOI_2019) * 60,
-            `G/60_2018` = (G_2018 / TOI_2018) * 60,
-            `G/60_2017` = (G_2017 / TOI_2017) * 60,
-            `G/60_2016` = (G_2016 / TOI_2016) * 60
+            `GC/60_2023` = (`GC/GP_2023` / TOI_2023) * 60,
+            `GC/60_2022` = (`GC/GP_2022` / TOI_2022) * 60,
+            `GC/60_2021` = (`GC/GP_2021` / TOI_2021) * 60,
+            `GC/60_2020` = (`GC/GP_2020` / TOI_2020) * 60,
+            `GC/60_2019` = (`GC/GP_2019` / TOI_2019) * 60,
+            `GC/60_2018` = (`GC/GP_2018` / TOI_2018) * 60,
+            `GC/60_2017` = (`GC/GP_2017` / TOI_2017) * 60,
+            `GC/60_2016` = (`GC/GP_2016` / TOI_2016) * 60
             )
 
 scorer_stats <- scorer_60 |> 
   ungroup() |> 
-  mutate(mean_EVG_23 = mean(`EVG/60_2023`, na.rm = TRUE),
-         mean_EVG_22 = mean(`EVG/60_2022`, na.rm = TRUE),
-         mean_EVG_21 = mean(`EVG/60_2021`, na.rm = TRUE),
-         mean_EVG_20 = mean(`EVG/60_2020`, na.rm = TRUE),
-         mean_EVG_19 = mean(`EVG/60_2019`, na.rm = TRUE),
-         mean_EVG_18 = mean(`EVG/60_2018`, na.rm = TRUE),
-         mean_EVG_17 = mean(`EVG/60_2017`, na.rm = TRUE),
-         mean_EVG_16 = mean(`EVG/60_2016`, na.rm = TRUE),
+  mutate(mean_EVG_2023 = mean(`EVG/60_2023`, na.rm = TRUE),
+         mean_EVG_2022 = mean(`EVG/60_2022`, na.rm = TRUE),
+         mean_EVG_2021 = mean(`EVG/60_2021`, na.rm = TRUE),
+         mean_EVG_2020 = mean(`EVG/60_2020`, na.rm = TRUE),
+         mean_EVG_2019 = mean(`EVG/60_2019`, na.rm = TRUE),
+         mean_EVG_2018 = mean(`EVG/60_2018`, na.rm = TRUE),
+         mean_EVG_2017 = mean(`EVG/60_2017`, na.rm = TRUE),
+         mean_EVG_2016 = mean(`EVG/60_2016`, na.rm = TRUE),
          
-         mean_PPA_23 = mean(`PPA/60_2023`, na.rm = TRUE),
-         mean_PPA_22 = mean(`PPA/60_2022`, na.rm = TRUE),
-         mean_PPA_21 = mean(`PPA/60_2021`, na.rm = TRUE),
-         mean_PPA_20 = mean(`PPA/60_2020`, na.rm = TRUE),
-         mean_PPA_19 = mean(`PPA/60_2019`, na.rm = TRUE),
-         mean_PPA_18 = mean(`PPA/60_2018`, na.rm = TRUE),
-         mean_PPA_17 = mean(`PPA/60_2017`, na.rm = TRUE),
-         mean_PPA_16 = mean(`PPA/60_2016`, na.rm = TRUE),
+         mean_PPA_2023 = mean(`PPA/60_2023`, na.rm = TRUE),
+         mean_PPA_2022 = mean(`PPA/60_2022`, na.rm = TRUE),
+         mean_PPA_2021 = mean(`PPA/60_2021`, na.rm = TRUE),
+         mean_PPA_2020 = mean(`PPA/60_2020`, na.rm = TRUE),
+         mean_PPA_2019 = mean(`PPA/60_2019`, na.rm = TRUE),
+         mean_PPA_2018 = mean(`PPA/60_2018`, na.rm = TRUE),
+         mean_PPA_2017 = mean(`PPA/60_2017`, na.rm = TRUE),
+         mean_PPA_2016 = mean(`PPA/60_2016`, na.rm = TRUE),
          
-         mean_G_23 = mean(`G/60_2023`, na.rm = TRUE),
-         mean_G_22 = mean(`G/60_2022`, na.rm = TRUE),
-         mean_G_21 = mean(`G/60_2021`, na.rm = TRUE),
-         mean_G_20 = mean(`G/60_2020`, na.rm = TRUE),
-         mean_G_19 = mean(`G/60_2019`, na.rm = TRUE),
-         mean_G_18 = mean(`G/60_2018`, na.rm = TRUE),
-         mean_G_17 = mean(`G/60_2017`, na.rm = TRUE),
-         mean_G_16 = mean(`G/60_2016`, na.rm = TRUE),
+         mean_GC_2023 = mean(`GC/60_2023`, na.rm = TRUE),
+         mean_GC_2022 = mean(`GC/60_2022`, na.rm = TRUE),
+         mean_GC_2021 = mean(`GC/60_2021`, na.rm = TRUE),
+         mean_GC_2020 = mean(`GC/60_2020`, na.rm = TRUE),
+         mean_GC_2019 = mean(`GC/60_2019`, na.rm = TRUE),
+         mean_GC_2018 = mean(`GC/60_2018`, na.rm = TRUE),
+         mean_GC_2017 = mean(`GC/60_2017`, na.rm = TRUE),
+         mean_GC_2016 = mean(`GC/60_2016`, na.rm = TRUE),
          
          
-         sd_EVG_23 = sd(`EVG/60_2023`, na.rm = TRUE),
-         sd_EVG_22 = sd(`EVG/60_2022`, na.rm = TRUE),
-         sd_EVG_21 = sd(`EVG/60_2021`, na.rm = TRUE),
-         sd_EVG_20 = sd(`EVG/60_2020`, na.rm = TRUE),
-         sd_EVG_19 = sd(`EVG/60_2019`, na.rm = TRUE),
-         sd_EVG_18 = sd(`EVG/60_2018`, na.rm = TRUE),
-         sd_EVG_17 = sd(`EVG/60_2017`, na.rm = TRUE),
-         sd_EVG_16 = sd(`EVG/60_2016`, na.rm = TRUE),
+         sd_EVG_2023 = sd(`EVG/60_2023`, na.rm = TRUE),
+         sd_EVG_2022 = sd(`EVG/60_2022`, na.rm = TRUE),
+         sd_EVG_2021 = sd(`EVG/60_2021`, na.rm = TRUE),
+         sd_EVG_2020 = sd(`EVG/60_2020`, na.rm = TRUE),
+         sd_EVG_2019 = sd(`EVG/60_2019`, na.rm = TRUE),
+         sd_EVG_2018 = sd(`EVG/60_2018`, na.rm = TRUE),
+         sd_EVG_2017 = sd(`EVG/60_2017`, na.rm = TRUE),
+         sd_EVG_2016 = sd(`EVG/60_2016`, na.rm = TRUE),
          
-         sd_PPA_23 = sd(`PPA/60_2023`, na.rm = TRUE),
-         sd_PPA_22 = sd(`PPA/60_2022`, na.rm = TRUE),
-         sd_PPA_21 = sd(`PPA/60_2021`, na.rm = TRUE),
-         sd_PPA_20 = sd(`PPA/60_2020`, na.rm = TRUE),
-         sd_PPA_19 = sd(`PPA/60_2019`, na.rm = TRUE),
-         sd_PPA_18 = sd(`PPA/60_2018`, na.rm = TRUE),
-         sd_PPA_17 = sd(`PPA/60_2017`, na.rm = TRUE),
-         sd_PPA_16 = sd(`PPA/60_2016`, na.rm = TRUE),
+         sd_PPA_2023 = sd(`PPA/60_2023`, na.rm = TRUE),
+         sd_PPA_2022 = sd(`PPA/60_2022`, na.rm = TRUE),
+         sd_PPA_2021 = sd(`PPA/60_2021`, na.rm = TRUE),
+         sd_PPA_2020 = sd(`PPA/60_2020`, na.rm = TRUE),
+         sd_PPA_2019 = sd(`PPA/60_2019`, na.rm = TRUE),
+         sd_PPA_2018 = sd(`PPA/60_2018`, na.rm = TRUE),
+         sd_PPA_2017 = sd(`PPA/60_2017`, na.rm = TRUE),
+         sd_PPA_2016 = sd(`PPA/60_2016`, na.rm = TRUE),
          
-         sd_G_23 = sd(`G/60_2023`, na.rm = TRUE),
-         sd_G_22 = sd(`G/60_2022`, na.rm = TRUE),
-         sd_G_21 = sd(`G/60_2021`, na.rm = TRUE),
-         sd_G_20 = sd(`G/60_2020`, na.rm = TRUE),
-         sd_G_19 = sd(`G/60_2019`, na.rm = TRUE),
-         sd_G_18 = sd(`G/60_2018`, na.rm = TRUE),
-         sd_G_17 = sd(`G/60_2017`, na.rm = TRUE),
-         sd_G_16 = sd(`G/60_2016`, na.rm = TRUE)
+         sd_GC_2023 = sd(`GC/60_2023`, na.rm = TRUE),
+         sd_GC_2022 = sd(`GC/60_2022`, na.rm = TRUE),
+         sd_GC_2021 = sd(`GC/60_2021`, na.rm = TRUE),
+         sd_GC_2020 = sd(`GC/60_2020`, na.rm = TRUE),
+         sd_GC_2019 = sd(`GC/60_2019`, na.rm = TRUE),
+         sd_GC_2018 = sd(`GC/60_2018`, na.rm = TRUE),
+         sd_GC_2017 = sd(`GC/60_2017`, na.rm = TRUE),
+         sd_GC_2016 = sd(`GC/60_2016`, na.rm = TRUE)
   )  
 
 
@@ -314,40 +313,51 @@ scorer_stats <- scorer_60 |>
 
 scorer_zscore <- scorer_stats |> 
   group_by(Player, PlayerID) |>
-  summarize(EVG_zscore_23 = (`EVG/60_2023` - `mean_EVG_23`) / `sd_EVG_23`,
-            EVG_zscore_22 = (`EVG/60_2022` - `mean_EVG_22`) / `sd_EVG_22`,
-            EVG_zscore_21 = (`EVG/60_2021` - `mean_EVG_21`) / `sd_EVG_21`,
-            EVG_zscore_20 = (`EVG/60_2020` - `mean_EVG_20`) / `sd_EVG_20`,
-            EVG_zscore_19 = (`EVG/60_2019` - `mean_EVG_19`) / `sd_EVG_19`,
-            EVG_zscore_18 = (`EVG/60_2018` - `mean_EVG_18`) / `sd_EVG_18`,
-            EVG_zscore_17 = (`EVG/60_2017` - `mean_EVG_17`) / `sd_EVG_17`,
-            EVG_zscore_16 = (`EVG/60_2016` - `mean_EVG_16`) / `sd_EVG_16`,
+  summarize(EVG_zscore_2023 = (`EVG/60_2023` - `mean_EVG_2023`) / `sd_EVG_2023`,
+            EVG_zscore_2022 = (`EVG/60_2022` - `mean_EVG_2022`) / `sd_EVG_2022`,
+            EVG_zscore_2021 = (`EVG/60_2021` - `mean_EVG_2021`) / `sd_EVG_2021`,
+            EVG_zscore_2020 = (`EVG/60_2020` - `mean_EVG_2020`) / `sd_EVG_2020`,
+            EVG_zscore_2019 = (`EVG/60_2019` - `mean_EVG_2019`) / `sd_EVG_2019`,
+            EVG_zscore_2018 = (`EVG/60_2018` - `mean_EVG_2018`) / `sd_EVG_2018`,
+            EVG_zscore_2017 = (`EVG/60_2017` - `mean_EVG_2017`) / `sd_EVG_2017`,
+            EVG_zscore_2016 = (`EVG/60_2016` - `mean_EVG_2016`) / `sd_EVG_2016`,
             
-            PPA_zscore_23 = (`PPA/60_2023` - `mean_PPA_23`) / `sd_PPA_23`,
-            PPA_zscore_22 = (`PPA/60_2022` - `mean_PPA_22`) / `sd_PPA_22`,
-            PPA_zscore_21 = (`PPA/60_2021` - `mean_PPA_21`) / `sd_PPA_21`,
-            PPA_zscore_20 = (`PPA/60_2020` - `mean_PPA_20`) / `sd_PPA_20`,
-            PPA_zscore_19 = (`PPA/60_2019` - `mean_PPA_19`) / `sd_PPA_19`,
-            PPA_zscore_18 = (`PPA/60_2018` - `mean_PPA_18`) / `sd_PPA_18`,
-            PPA_zscore_17 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
-            PPA_zscore_16 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
+            PPA_zscore_2023 = (`PPA/60_2023` - `mean_PPA_2023`) / `sd_PPA_2023`,
+            PPA_zscore_2022 = (`PPA/60_2022` - `mean_PPA_2022`) / `sd_PPA_2022`,
+            PPA_zscore_2021 = (`PPA/60_2021` - `mean_PPA_2021`) / `sd_PPA_2021`,
+            PPA_zscore_2020 = (`PPA/60_2020` - `mean_PPA_2020`) / `sd_PPA_2020`,
+            PPA_zscore_2019 = (`PPA/60_2019` - `mean_PPA_2019`) / `sd_PPA_2019`,
+            PPA_zscore_2018 = (`PPA/60_2018` - `mean_PPA_2018`) / `sd_PPA_2018`,
+            PPA_zscore_2017 = (`PPA/60_2017` - `mean_PPA_2017`) / `sd_PPA_2017`,
+            PPA_zscore_2016 = (`PPA/60_2016` - `mean_PPA_2016`) / `sd_PPA_2016`,
             
-            G_zscore_23 = (`G/60_2023` - `mean_G_23`) / `sd_G_23`,
-            G_zscore_22 = (`G/60_2022` - `mean_G_22`) / `sd_G_22`,
-            G_zscore_21 = (`G/60_2021` - `mean_G_21`) / `sd_G_21`,
-            G_zscore_20 = (`G/60_2020` - `mean_G_20`) / `sd_G_20`,
-            G_zscore_19 = (`G/60_2019` - `mean_G_19`) / `sd_G_19`,
-            G_zscore_18 = (`G/60_2018` - `mean_G_18`) / `sd_G_18`,
-            G_zscore_17 = (`G/60_2017` - `mean_G_17`) / `sd_G_17`,
-            G_zscore_16 = (`G/60_2016` - `mean_G_16`) / `sd_G_16`,
+            GC_zscore_2023 = (`GC/60_2023` - `mean_GC_2023`) / `sd_GC_2023`,
+            GC_zscore_2022 = (`GC/60_2022` - `mean_GC_2022`) / `sd_GC_2022`,
+            GC_zscore_2021 = (`GC/60_2021` - `mean_GC_2021`) / `sd_GC_2021`,
+            GC_zscore_2020 = (`GC/60_2020` - `mean_GC_2020`) / `sd_GC_2020`,
+            GC_zscore_2019 = (`GC/60_2019` - `mean_GC_2019`) / `sd_GC_2019`,
+            GC_zscore_2018 = (`GC/60_2018` - `mean_GC_2018`) / `sd_GC_2018`,
+            GC_zscore_2017 = (`GC/60_2017` - `mean_GC_2017`) / `sd_GC_2017`,
+            GC_zscore_2016 = (`GC/60_2016` - `mean_GC_2016`) / `sd_GC_2016`,
             )
 
 
-scorer_zscore |> 
-  arrange(desc(EVG_zscore)) |> 
-  head(10) |> 
-  ggplot(aes(x = EVG_zscore, reorder(Player, EVG_zscore))) +
-  geom_col()
+scorer_zscore_long <- scorer_zscore |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_")
+
+
+scorer_zscore_long |> 
+  filter(Player == "Sidney Crosby") |> 
+  ggplot(aes(x = Year, y = EVG)) +
+  geom_point() + 
+  geom_hline(yintercept = 0.5, linetype = "dashed")
+
+
+
+
 
 
 
