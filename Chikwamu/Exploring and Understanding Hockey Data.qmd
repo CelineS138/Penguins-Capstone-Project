@@ -84,6 +84,75 @@ basic_2023_24 <- read_csv("https://raw.githubusercontent.com/CelineS138/Penguins
 basic_2023_24
 ```
 
+```{r}
+#filtering by position and selecting some metrics that maybe used to calculate and assess quality of defensemen
+defensemen <- basic_2023_24|>
+  filter(Pos == "D")|>
+  select(Player, Age, GP, G, A, PTS,PS, S, TOI, BLK, HIT)
+glimpse(defensemen)
+```
+
+
+##Some very uneccessary EDA to just get a sense of the distribution of variables
+```{r}
+theme_set(theme_light())
+# Plot the distribution of each variable
+variables <- c("Age", "GP", "G", "A", "PTS", "PS", "S", "TOI", "BLK", "HIT")
+
+# Create plots for each variable
+for (var in variables) {
+  p <- ggplot(defensemen, aes_string(x = var)) +
+    geom_histogram(binwidth = 1, fill = "lightblue") +
+    theme_minimal() +
+    labs(title = paste("Distribution of", var), x = var, y = "Frequency")
+  
+  print(p)
+}
+```
+
+
+```{r}
+# Calculate Blocks per Game (BPG) and Blocks per Minute (BPM)
+defensemen <- defensemen |>
+  mutate(
+    BPG = BLK / GP,
+    BPM = BLK / TOI
+  )
+# new defensemen with BPG and BPM
+glimpse(defensemen)
+```
+
+```{r}
+
+# Visualize Blocks per Game (BPG) and Blocks per Minute (BPM)
+
+# Blocks per Game
+ggplot(defensemen, aes(x = BPG)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribution of Blocks per Game (BPG) for Defensemen", x = "Blocks per Game", y = "Frequency")
+
+# Blocks per Minute
+ggplot(defensemen, aes(x = BPM)) +
+  geom_histogram(binwidth = 0.001, fill = "green", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribution of Blocks per Minute (BPM) for Defensemen", x = "Blocks per Minute", y = "Frequency")
+
+# Scatter plot to visualize consistency
+ggplot(defensemen, aes(x = GP, y = BPG)) +
+  geom_point(aes(size = TOI, color = Player)) +
+  theme_minimal() +
+  labs(title = "Blocks per Game vs. Games Played", x = "Games Played (GP)", y = "Blocks per Game (BPG)")
+
+ggplot(defensemen, aes(x = TOI, y = BPM)) +
+  geom_point(aes(size = GP, color = Player)) +
+  theme_minimal() +
+  labs(title = "Blocks per Minute vs. Time on Ice", x = "Time on Ice (TOI)", y = "Blocks per Minute (BPM)")
+
+
+```
+
+
 ##Data
 
 ### Basic Statistics
