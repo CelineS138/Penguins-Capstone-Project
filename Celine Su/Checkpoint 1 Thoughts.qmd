@@ -7,21 +7,17 @@ author: "Celine, Cole"
 
 ## Thoughts on measuring consistency
 
-1. Derive a consistency variable (consistency score) by calculating the differences in performance statistics across seasons; apply different weights by position. 
+1.  Derive a consistency variable (consistency score) by calculating the differences in performance statistics across seasons; apply different weights by position.
 
-2. Weight the metrics differently based on importance for each position
+2.  Weight the metrics differently based on importance for each position
 
-3. Consistency score will have more consistent players near 0 & inconsistent players much greater than 0
+3.  Consistency score will have more consistent players near 0 & inconsistent players much greater than 0
 
-4. Performance metrics must be `per game` or `per 60 minutes` to make it consistent and unbiased among player
+4.  Performance metrics must be `per game` or `per 60 minutes` to make it consistent and unbiased among player
 
+## Data
 
-## Data 
-
-### Basic Statistics 
-
-
-
+### Basic Statistics
 
 ### Advanced Statistics
 
@@ -46,11 +42,9 @@ combined_df <- rbind(Stats_AD23.24, Stats_AD22.23, Stats_AD21.22, Stats_AD20.21,
                      Stats_AD18.19, Stats_AD17.18, Stats_AD16.17)
 ```
 
-
 ## EDAs
 
 ### EDAs using Basic Stats
-
 
 ### EDAs using Advanced Stats
 
@@ -58,7 +52,6 @@ combined_df <- rbind(Stats_AD23.24, Stats_AD22.23, Stats_AD21.22, Stats_AD20.21,
 library(ggplot2)
 library(tidyverse)
 ```
-
 
 ```{r}
 combined_df |> 
@@ -76,13 +69,3 @@ combined_df |>
        color = "Metric") +
   theme_minimal()
 ```
-
-
-
-
-
-
-
-
-
-
