@@ -130,6 +130,8 @@ long_adv_df <- advanced_df |>
 long_adv_df <- long_adv_df %>% 
   unnest() %>% 
   replace(. == "NULL", NA)
+
+long_adv_df <- long_adv_df |> arrange(Player, PlayerID)
 ```
 
 
@@ -235,12 +237,14 @@ player_pos <- misc_df_pos |>
 
 ```{r}
 long_misc_df <- misc_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GC, `G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
 
 long_misc_df <- long_misc_df %>% 
   unnest() %>% 
   replace(. == "NULL", NA)
   # mutate(across(`G/GP_2023`:`PS_2016`, ~replace_na(.x, 0)))
+
+long_misc_df <- long_misc_df |> arrange(Player, PlayerID)
 
 # long_misc_df_exp <- long_misc_df |>
 #   group_by(Player) |> 
@@ -278,24 +282,79 @@ long_misc_df <- long_misc_df %>%
 
 
 
-```{r, Making Complete Dataset}
-complete_df3 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
+```{r}
+complete_df1 <- cbind(basic_df, advanced_df, toi_df, misc_df)
 
-complete_df <- complete_df3[ , !duplicated(colnames(complete_df3))]
+complete_df <- complete_df1[ , !duplicated(colnames(complete_df1))]
+
+complete_df <- complete_df |> filter(Player != "Daniel Sedin", Player != "Henrik Sedin", Player != "Jarome Iginla", Player != "Marián Hossa")
 
 complete_df <- complete_df |> full_join(player_pos)
 
 complete_df <- complete_df |> full_join(num_seasons) |> select(-n)
 
+complete_df <- complete_df |> 
+  filter(num_seasons >= 5)
+```
 
-complete_df_sel <- complete_df |> 
+
+
+
+
+```{r}
+feat <- complete_df |> select(GP:TOI, BLK:`FO%`, CF:DPS) |> select(-`TOI/60`, -`TOI(EV)`, -Shift, -`TOI (EV)`, -`TOI (PP)`, -`TOI (SH)`) |> na.omit()
+
+glimpse(feat)
+
+nhl_pca <- prcomp(feat, center = TRUE, scale. = TRUE)
+
+library(factoextra)
+# fviz_pca_var(): projection of variables
+# fviz_pca_ind(): display observations with first two PCs
+nhl_pca |> 
+  fviz_pca_biplot(label = "var",
+                  alpha.ind = 0.25,
+                  alpha.var = 0.75,
+                  col.var = "darkblue",
+                  repel = TRUE)
+
+nhl_pca |> 
+  fviz_eig(addlabels = TRUE) +
+  geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
+
+library(broom)
+nhl_pca |>
+  tidy(matrix = "eigenvalues") |>
+  ggplot(aes(x = PC, y = cumulative)) +
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
+```
+
+
+
+
+
+
+```{r}
+complete_df_long1 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
+
+complete_df_long <- complete_df_long1[ , !duplicated(colnames(complete_df_long1))]
+
+complete_df_long <- complete_df_long |> filter(Player != "Daniel Sedin", Player != "Henrik Sedin", Player != "Jarome Iginla", Player != "Marián Hossa")
+
+complete_df_long <- complete_df_long |> full_join(player_pos)
+
+complete_df_long <- complete_df_long |> full_join(num_seasons) |> select(-n)
+
+complete_df_long <- complete_df_long |> 
   filter(num_seasons >= 5)
 ```
 
 
 
 ```{r}
-playmaker <- complete_df_sel |> select(Player, PlayerID, starts_with("TOI_"), contains("EVA_"), contains("PPA_"), contains("SHA_"))
+playmaker <- complete_df_long |> select(Player, PlayerID, starts_with("GC"), starts_with("TOI_"), contains("EVA_"), contains("PPA_"))
 
 playmaker2 <- playmaker |> 
   group_by(Player, PlayerID) |> 
@@ -318,14 +377,14 @@ playmaker2 <- playmaker |>
     `PPA/60_2017` = (PPA_2017 / TOI_2017) * 60,
     `PPA/60_2016` = (PPA_2016 / TOI_2016) * 60,
     
-    `SHA/60_2023` = (SHA_2023 / TOI_2023) * 60,
-    `SHA/60_2022` = (SHA_2022 / TOI_2022) * 60,
-    `SHA/60_2021` = (SHA_2021 / TOI_2021) * 60,
-    `SHA/60_2020` = (SHA_2020 / TOI_2020) * 60,
-    `SHA/60_2019` = (SHA_2019 / TOI_2019) * 60,
-    `SHA/60_2018` = (SHA_2018 / TOI_2018) * 60,
-    `SHA/60_2017` = (SHA_2017 / TOI_2017) * 60,
-    `SHA/60_2016` = (SHA_2016 / TOI_2016) * 60,
+    `GC/60_2023` = (GC_2023 / TOI_2023) * 60,
+    `GC/60_2022` = (GC_2022 / TOI_2022) * 60,
+    `GC/60_2021` = (GC_2021 / TOI_2021) * 60,
+    `GC/60_2020` = (GC_2020 / TOI_2020) * 60,
+    `GC/60_2019` = (GC_2019 / TOI_2019) * 60,
+    `GC/60_2018` = (GC_2018 / TOI_2018) * 60,
+    `GC/60_2017` = (GC_2017 / TOI_2017) * 60,
+    `GC/60_2016` = (GC_2016 / TOI_2016) * 60,
          )
 
 playmaker3 <- playmaker2 |> 
@@ -348,14 +407,14 @@ playmaker3 <- playmaker2 |>
          mean_PPA_17 = mean(`PPA/60_2017`, na.rm = TRUE),
          mean_PPA_16 = mean(`PPA/60_2016`, na.rm = TRUE),
          
-         mean_SHA_23 = mean(`SHA/60_2023`, na.rm = TRUE),
-         mean_SHA_22 = mean(`SHA/60_2022`, na.rm = TRUE),
-         mean_SHA_21 = mean(`SHA/60_2021`, na.rm = TRUE),
-         mean_SHA_20 = mean(`SHA/60_2020`, na.rm = TRUE),
-         mean_SHA_19 = mean(`SHA/60_2019`, na.rm = TRUE),
-         mean_SHA_18 = mean(`SHA/60_2018`, na.rm = TRUE),
-         mean_SHA_17 = mean(`SHA/60_2017`, na.rm = TRUE),
-         mean_SHA_16 = mean(`SHA/60_2016`, na.rm = TRUE),
+         mean_GC_23 = mean(`GC/60_2023`, na.rm = TRUE),
+         mean_GC_22 = mean(`GC/60_2022`, na.rm = TRUE),
+         mean_GC_21 = mean(`GC/60_2021`, na.rm = TRUE),
+         mean_GC_20 = mean(`GC/60_2020`, na.rm = TRUE),
+         mean_GC_19 = mean(`GC/60_2019`, na.rm = TRUE),
+         mean_GC_18 = mean(`GC/60_2018`, na.rm = TRUE),
+         mean_GC_17 = mean(`GC/60_2017`, na.rm = TRUE),
+         mean_GC_16 = mean(`GC/60_2016`, na.rm = TRUE),
          
          
          sd_EVA_23 = sd(`EVA/60_2023`, na.rm = TRUE),
@@ -376,14 +435,14 @@ playmaker3 <- playmaker2 |>
          sd_PPA_17 = sd(`PPA/60_2017`, na.rm = TRUE),
          sd_PPA_16 = sd(`PPA/60_2016`, na.rm = TRUE),
          
-         sd_SHA_23 = sd(`SHA/60_2023`, na.rm = TRUE),
-         sd_SHA_22 = sd(`SHA/60_2022`, na.rm = TRUE),
-         sd_SHA_21 = sd(`SHA/60_2021`, na.rm = TRUE),
-         sd_SHA_20 = sd(`SHA/60_2020`, na.rm = TRUE),
-         sd_SHA_19 = sd(`SHA/60_2019`, na.rm = TRUE),
-         sd_SHA_18 = sd(`SHA/60_2018`, na.rm = TRUE),
-         sd_SHA_17 = sd(`SHA/60_2017`, na.rm = TRUE),
-         sd_SHA_16 = sd(`SHA/60_2016`, na.rm = TRUE),
+         sd_GC_23 = sd(`GC/60_2023`, na.rm = TRUE),
+         sd_GC_22 = sd(`GC/60_2022`, na.rm = TRUE),
+         sd_GC_21 = sd(`GC/60_2021`, na.rm = TRUE),
+         sd_GC_20 = sd(`GC/60_2020`, na.rm = TRUE),
+         sd_GC_19 = sd(`GC/60_2019`, na.rm = TRUE),
+         sd_GC_18 = sd(`GC/60_2018`, na.rm = TRUE),
+         sd_GC_17 = sd(`GC/60_2017`, na.rm = TRUE),
+         sd_GC_16 = sd(`GC/60_2016`, na.rm = TRUE),
          )
 
 
@@ -408,14 +467,14 @@ playmaker_score <- playmaker3 |>
     PPA_zscore_2017 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
     PPA_zscore_2016 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
     
-    SHA_zscore_2023 = (`SHA/60_2023` - `mean_SHA_23`) / `sd_SHA_23`,
-    SHA_zscore_2022 = (`SHA/60_2022` - `mean_SHA_22`) / `sd_SHA_22`,
-    SHA_zscore_2021 = (`SHA/60_2021` - `mean_SHA_21`) / `sd_SHA_21`,
-    SHA_zscore_2020 = (`SHA/60_2020` - `mean_SHA_20`) / `sd_SHA_20`,
-    SHA_zscore_2019 = (`SHA/60_2019` - `mean_SHA_19`) / `sd_SHA_19`,
-    SHA_zscore_2018 = (`SHA/60_2018` - `mean_SHA_18`) / `sd_SHA_18`,
-    SHA_zscore_2017 = (`SHA/60_2017` - `mean_SHA_17`) / `sd_SHA_17`,
-    SHA_zscore_2016 = (`SHA/60_2016` - `mean_SHA_16`) / `sd_SHA_16`
+    GC_zscore_2023 = (`GC/60_2023` - `mean_GC_23`) / `sd_GC_23`,
+    GC_zscore_2022 = (`GC/60_2022` - `mean_GC_22`) / `sd_GC_22`,
+    GC_zscore_2021 = (`GC/60_2021` - `mean_GC_21`) / `sd_GC_21`,
+    GC_zscore_2020 = (`GC/60_2020` - `mean_GC_20`) / `sd_GC_20`,
+    GC_zscore_2019 = (`GC/60_2019` - `mean_GC_19`) / `sd_GC_19`,
+    GC_zscore_2018 = (`GC/60_2018` - `mean_GC_18`) / `sd_GC_18`,
+    GC_zscore_2017 = (`GC/60_2017` - `mean_GC_17`) / `sd_GC_17`,
+    GC_zscore_2016 = (`GC/60_2016` - `mean_GC_16`) / `sd_GC_16`
             )
 
 
@@ -428,17 +487,38 @@ master_playmaker <- playmaker_score |>
   select(-PlayerID) |> 
   pivot_longer(-c(Player),
                names_to = c(".value", "Year"), 
-               names_sep = "_zscore_")
+               names_sep = "_zscore_") |> 
+  group_by(Player, Year) |> 
+  mutate(total_zscore = sum(1/2 * EVA, 1/2 * GC)) |> 
+  ungroup() |> 
+  group_by(Player) |> 
+  mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
 ```
 
 
 
 ```{r}
+library(ggbeeswarm)
+library(ggrepel)
+
 master_playmaker |> 
-  mutate(Groupings = ifelse(EVA <= 0.5 & EVA >= -0.5, "Consistent", "Inconsistent")) |> 
-  ggplot(aes(x = Year, y = EVA)) +
-  geom_point(aes(fill = Groupings)) +
-  geom_hline(yintercept = 0.5, fill = "red", linetype = "dashed")
+  na.omit() |> 
+  mutate(Groupings = ifelse(total_zscore <= 0.5 & total_zscore >= -0.5, "Consistent", ifelse(total_zscore >= 0.5, "Good Consistent", "Bad Consistent"))) |> 
+  # group_by(Groupings, Year) |> 
+  # summarise(mean_EVA = mean(EVA)) |> 
+  ggplot(aes(x = Year, y = total_zscore, label = Player)) +
+  # geom_point(aes(color = Groupings), alpha = 0.2) +
+  geom_beeswarm(aes(color = Groupings), alpha = 0.2) +
+  geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
+  geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
+  geom_label_repel(size = 2, box.padding = .05) +
+  scale_x_discrete(expand = c(0.1, 0))
+
+master_playmaker |> 
+  filter(Player == "Sidney Crosby") |> 
+  ggplot(aes(x = Year, y = total_zscore)) +
+  geom_point() +
+  geom_hline(aes(yintercept = mean_zscore))
 ```
 
 
@@ -446,34 +526,34 @@ master_playmaker |>
 
 
 ```{r}
-long_misc_df_exp |> 
-  group_by(Player) |> 
-  arrange(desc(total_ptspg_diff)) |> 
-  head(n = 10) |> 
-  ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
-  geom_col(fill = "purple") +
-  geom_label(aes(label = total_ptspg_diff), size = 5) +
-  theme_bw() +
-  labs(
-    x = "Total Points Per Game Difference",
-    y = "Players",
-    caption = "Data courtesy of Hockey-Reference"
-  )
-
-
-long_misc_df_exp |> 
-  group_by(Player) |> 
-  arrange(desc(total_ops_diff)) |> 
-  head(n = 10) |> 
-  ggplot(aes(y = reorder(Player, total_ops_diff), x = total_ops_diff)) +
-  geom_col(fill = "purple") +
-  geom_label(aes(label = total_ops_diff), size = 5) +
-  theme_bw() +
-  labs(
-    x = "Total Offensive Point Shares Difference",
-    y = "Players",
-    caption = "Data courtesy of Hockey-Reference"
-  )
+# long_misc_df_exp |> 
+#   group_by(Player) |> 
+#   arrange(desc(total_ptspg_diff)) |> 
+#   head(n = 10) |> 
+#   ggplot(aes(y = reorder(Player, total_ptspg_diff), x = total_ptspg_diff)) +
+#   geom_col(fill = "purple") +
+#   geom_label(aes(label = total_ptspg_diff), size = 5) +
+#   theme_bw() +
+#   labs(
+#     x = "Total Points Per Game Difference",
+#     y = "Players",
+#     caption = "Data courtesy of Hockey-Reference"
+#   )
+# 
+# 
+# long_misc_df_exp |> 
+#   group_by(Player) |> 
+#   arrange(desc(total_ops_diff)) |> 
+#   head(n = 10) |> 
+#   ggplot(aes(y = reorder(Player, total_ops_diff), x = total_ops_diff)) +
+#   geom_col(fill = "purple") +
+#   geom_label(aes(label = total_ops_diff), size = 5) +
+#   theme_bw() +
+#   labs(
+#     x = "Total Offensive Point Shares Difference",
+#     y = "Players",
+#     caption = "Data courtesy of Hockey-Reference"
+#   )
 
 
 
