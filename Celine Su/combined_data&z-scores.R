@@ -357,6 +357,233 @@ scorer_zscore_long |>
 
 
 
+## combined z-scores
+
+scorer_combined_zscore <- scorer_zscore |> 
+  group_by(Player, PlayerID) |>
+  summarize(cb_zscore_2023 = (1/3)*EVG_zscore_2023 + (1/3)*PPA_zscore_2023 + (1/3)*GC_zscore_2023,
+            cb_zscore_2022 = (1/3)*EVG_zscore_2022 + (1/3)*PPA_zscore_2022 + (1/3)*GC_zscore_2022,
+            cb_zscore_2021 = (1/3)*EVG_zscore_2021 + (1/3)*PPA_zscore_2021 + (1/3)*GC_zscore_2021,
+            cb_zscore_2020 = (1/3)*EVG_zscore_2020 + (1/3)*PPA_zscore_2020 + (1/3)*GC_zscore_2020,
+            cb_zscore_2019 = (1/3)*EVG_zscore_2019 + (1/3)*PPA_zscore_2019 + (1/3)*GC_zscore_2019,
+            cb_zscore_2018 = (1/3)*EVG_zscore_2018 + (1/3)*PPA_zscore_2018 + (1/3)*GC_zscore_2018,
+            cb_zscore_2017 = (1/3)*EVG_zscore_2017 + (1/3)*PPA_zscore_2017 + (1/3)*GC_zscore_2017,
+            cb_zscore_2016 = (1/3)*EVG_zscore_2016 + (1/3)*PPA_zscore_2016 + (1/3)*GC_zscore_2016
+           )
+
+
+scorer_cb_zscore_long <- scorer_combined_zscore |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_")
+
+
+scorer_cb_zscore_long |> 
+  filter(Player == "Aaron Ekblad") |> 
+  ggplot(aes(x = Year, y = cb)) +
+  geom_point() + 
+  geom_hline(yintercept = 0.5, linetype = "dashed")
+
+
+
+
+
+## Goalie Stats
+
+goalie_2023_24 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_23_24.csv") |> 
+  mutate(start_year = 2023)
+
+goalie_2022_23 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_22_23.csv") |> 
+  mutate(start_year = 2022)
+
+goalie_2021_22 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_21_22.csv") |> 
+  mutate(start_year = 2021)
+
+goalie_2020_21 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_20_21.csv") |> 
+  mutate(start_year = 2020)
+
+goalie_2019_20 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_19_20.csv") |> 
+  mutate(start_year = 2019)
+
+goalie_2018_19 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_18_19.csv") |> 
+  mutate(start_year = 2018)
+
+goalie_2017_18 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_17_18.csv") |> 
+  mutate(start_year = 2017)
+
+goalie_2016_17 <- read_csv("~/Desktop/Penguins Capstone Project/Goalie Stats/goalie_stats_16_17.csv") |> 
+  mutate(start_year = 2016)
+
+
+
+goalie_df <- rbind(goalie_2016_17, goalie_2017_18, goalie_2018_19, goalie_2019_20, 
+                   goalie_2020_21, goalie_2021_22, goalie_2022_23, goalie_2023_24)
+
+
+goalie_df <- goalie_df |> 
+  filter(GP >= 20)
+
+long_goalie_df <- goalie_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), 
+              values_from = -c(Rk, Player, PlayerID, Age, Tm, start_year), 
+              names_from = start_year) |> 
+  unique()
+
+long_goalie_df <- long_goalie_df %>% 
+  unnest() %>%
+  replace(. == "NULL", NA)
+
+long_goalie_df <- long_goalie_df |> arrange(Player, PlayerID)
+
+goalie_num_seasons <- goalie_df |> 
+  group_by(Player, PlayerID) |> 
+  count() |> 
+  ungroup() |> 
+  mutate(num_seasons = n) |> 
+  unique() |> 
+  select(-n)
+
+complete_goalie_df <- cbind(long_goalie_df, goalie_num_seasons); complete_goalie_df <- complete_goalie_df[ , -c(179,180)]
+
+selected_goalie_df <- complete_goalie_df |> 
+  filter(num_seasons >= 5)
+
+
+# Goalie (Saver)
+
+## Data manipulation
+goalie <- selected_goalie_df |> 
+  select(Player, PlayerID, starts_with("SV%_"), starts_with("GAA_"), starts_with("MIN_"))
+
+goalie_60 <- goalie |> 
+  group_by(Player, PlayerID) |> 
+  summarize(`SV%/60_2023` = (`SV%_2023` / MIN_2023) * 60,
+            `SV%/60_2022` = (`SV%_2022` / MIN_2022) * 60,
+            `SV%/60_2021` = (`SV%_2021` / MIN_2021) * 60,
+            `SV%/60_2020` = (`SV%_2020` / MIN_2020) * 60,
+            `SV%/60_2019` = (`SV%_2019` / MIN_2019) * 60,
+            `SV%/60_2018` = (`SV%_2018` / MIN_2018) * 60,
+            `SV%/60_2017` = (`SV%_2017` / MIN_2017) * 60,
+            `SV%/60_2016` = (`SV%_2016` / MIN_2016) * 60,
+            
+            `GAA/60_2023` = (GAA_2023 / MIN_2023) * 60,
+            `GAA/60_2022` = (GAA_2022 / MIN_2022) * 60,
+            `GAA/60_2021` = (GAA_2021 / MIN_2021) * 60,
+            `GAA/60_2020` = (GAA_2020 / MIN_2020) * 60,
+            `GAA/60_2019` = (GAA_2019 / MIN_2019) * 60,
+            `GAA/60_2018` = (GAA_2018 / MIN_2018) * 60,
+            `GAA/60_2017` = (GAA_2017 / MIN_2017) * 60,
+            `GAA/60_2016` = (GAA_2016 / MIN_2016) * 60
+            )
+
+goalie_stats <- goalie_60 |> 
+  ungroup() |> 
+  mutate(`mean_SV%_2023` = mean(`SV%/60_2023`, na.rm = TRUE),
+         `mean_SV%_2022` = mean(`SV%/60_2022`, na.rm = TRUE),
+         `mean_SV%_2021` = mean(`SV%/60_2021`, na.rm = TRUE),
+         `mean_SV%_2020` = mean(`SV%/60_2020`, na.rm = TRUE),
+         `mean_SV%_2019` = mean(`SV%/60_2019`, na.rm = TRUE),
+         `mean_SV%_2018` = mean(`SV%/60_2018`, na.rm = TRUE),
+         `mean_SV%_2017` = mean(`SV%/60_2017`, na.rm = TRUE),
+         `mean_SV%_2016` = mean(`SV%/60_2016`, na.rm = TRUE),
+         
+         mean_GAA_2023 = mean(`GAA/60_2023`, na.rm = TRUE),
+         mean_GAA_2022 = mean(`GAA/60_2022`, na.rm = TRUE),
+         mean_GAA_2021 = mean(`GAA/60_2021`, na.rm = TRUE),
+         mean_GAA_2020 = mean(`GAA/60_2020`, na.rm = TRUE),
+         mean_GAA_2019 = mean(`GAA/60_2019`, na.rm = TRUE),
+         mean_GAA_2018 = mean(`GAA/60_2018`, na.rm = TRUE),
+         mean_GAA_2017 = mean(`GAA/60_2017`, na.rm = TRUE),
+         mean_GAA_2016 = mean(`GAA/60_2016`, na.rm = TRUE),
+         
+         `sd_SV%_2023` = sd(`SV%/60_2023`, na.rm = TRUE),
+         `sd_SV%_2022` = sd(`SV%/60_2022`, na.rm = TRUE),
+         `sd_SV%_2021` = sd(`SV%/60_2021`, na.rm = TRUE),
+         `sd_SV%_2020` = sd(`SV%/60_2020`, na.rm = TRUE),
+         `sd_SV%_2019` = sd(`SV%/60_2019`, na.rm = TRUE),
+         `sd_SV%_2018` = sd(`SV%/60_2018`, na.rm = TRUE),
+         `sd_SV%_2017` = sd(`SV%/60_2017`, na.rm = TRUE),
+         `sd_SV%_2016` = sd(`SV%/60_2016`, na.rm = TRUE),
+         
+         sd_GAA_2023 = sd(`GAA/60_2023`, na.rm = TRUE),
+         sd_GAA_2022 = sd(`GAA/60_2022`, na.rm = TRUE),
+         sd_GAA_2021 = sd(`GAA/60_2021`, na.rm = TRUE),
+         sd_GAA_2020 = sd(`GAA/60_2020`, na.rm = TRUE),
+         sd_GAA_2019 = sd(`GAA/60_2019`, na.rm = TRUE),
+         sd_GAA_2018 = sd(`GAA/60_2018`, na.rm = TRUE),
+         sd_GAA_2017 = sd(`GAA/60_2017`, na.rm = TRUE),
+         sd_GAA_2016 = sd(`GAA/60_2016`, na.rm = TRUE)
+         )  
+
+
+## Z-scores for Goalies
+
+goalie_zscore <- goalie_stats |> 
+  group_by(Player, PlayerID) |>
+  summarize(`SV%_zscore_2023` = (`SV%/60_2023` - `mean_SV%_2023`) / `sd_SV%_2023`,
+            `SV%_zscore_2022` = (`SV%/60_2022` - `mean_SV%_2022`) / `sd_SV%_2022`,
+            `SV%_zscore_2021` = (`SV%/60_2021` - `mean_SV%_2021`) / `sd_SV%_2021`,
+            `SV%_zscore_2020` = (`SV%/60_2020` - `mean_SV%_2020`) / `sd_SV%_2020`,
+            `SV%_zscore_2019` = (`SV%/60_2019` - `mean_SV%_2019`) / `sd_SV%_2019`,
+            `SV%_zscore_2018` = (`SV%/60_2018` - `mean_SV%_2018`) / `sd_SV%_2018`,
+            `SV%_zscore_2017` = (`SV%/60_2017` - `mean_SV%_2017`) / `sd_SV%_2017`,
+            `SV%_zscore_2016` = (`SV%/60_2016` - `mean_SV%_2016`) / `sd_SV%_2016`,
+            
+            GAA_zscore_2023 = (`GAA/60_2023` - `mean_GAA_2023`) / `sd_GAA_2023`,
+            GAA_zscore_2022 = (`GAA/60_2022` - `mean_GAA_2022`) / `sd_GAA_2022`,
+            GAA_zscore_2021 = (`GAA/60_2021` - `mean_GAA_2021`) / `sd_GAA_2021`,
+            GAA_zscore_2020 = (`GAA/60_2020` - `mean_GAA_2020`) / `sd_GAA_2020`,
+            GAA_zscore_2019 = (`GAA/60_2019` - `mean_GAA_2019`) / `sd_GAA_2019`,
+            GAA_zscore_2018 = (`GAA/60_2018` - `mean_GAA_2018`) / `sd_GAA_2018`,
+            GAA_zscore_2017 = (`GAA/60_2017` - `mean_GAA_2017`) / `sd_GAA_2017`,
+            GAA_zscore_2016 = (`GAA/60_2016` - `mean_GAA_2016`) / `sd_GAA_2016`
+            )
+
+
+goalie_zscore_long <- goalie_zscore |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_")
+
+
+goalie_zscore_long |> 
+  filter(Player == "Carey Price") |> 
+  ggplot(aes(x = Year, y = `SV%`)) +
+  geom_point() + 
+  geom_hline(yintercept = 0.5, linetype = "dashed")
+
+
+
+## combined z-scores for Goalies
+
+goalie_combined_zscore <- goalie_zscore |> 
+  group_by(Player, PlayerID) |>
+  summarize(cbg_zscore_2023 = (1/2)*`SV%_zscore_2023` + (1/2)*GAA_zscore_2023,
+            cbg_zscore_2022 = (1/2)*`SV%_zscore_2022` + (1/2)*GAA_zscore_2022,
+            cbg_zscore_2021 = (1/2)*`SV%_zscore_2021` + (1/2)*GAA_zscore_2021,
+            cbg_zscore_2020 = (1/2)*`SV%_zscore_2020` + (1/2)*GAA_zscore_2020,
+            cbg_zscore_2019 = (1/2)*`SV%_zscore_2019` + (1/2)*GAA_zscore_2019,
+            cbg_zscore_2018 = (1/2)*`SV%_zscore_2018` + (1/2)*GAA_zscore_2018,
+            cbg_zscore_2017 = (1/2)*`SV%_zscore_2017` + (1/2)*GAA_zscore_2017,
+            cbg_zscore_2016 = (1/2)*`SV%_zscore_2016` + (1/2)*GAA_zscore_2016
+            )
+
+
+goalie_cb_zscore_long <- goalie_combined_zscore |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_")
+
+
+goalie_cb_zscore_long |> 
+  filter(Player == "Matt Murray") |> 
+  ggplot(aes(x = Year, y = cbg)) +
+  geom_point() + 
+  geom_hline(yintercept = 0.5, linetype = "dashed")
+
 
 
 
