@@ -64,7 +64,7 @@ basic_df <- basic_df |>
 
 ```{r}
 long_basic_df <- basic_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, EVG, PPG, SHG, EVA, PPA, SHA, `+/-`, TOI, `S%`, PS), names_from = start_year) |> 
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(G, A, PTS, EVG, PPG, SHG, EVA, PPA, SHA, `+/-`, TOI, `S%`, PS, HIT, BLK, PIM), names_from = start_year) |> 
   unique()
 
 long_basic_df <- long_basic_df %>% 
@@ -302,11 +302,13 @@ complete_df <- complete_df |>
 
 
 ```{r}
-feat <- complete_df |> select(GP:TOI, BLK:`FO%`, CF:DPS) |> select(-`TOI/60`, -`TOI(EV)`, -Shift, -`TOI (EV)`, -`TOI (PP)`, -`TOI (SH)`) |> na.omit()
+feat <- complete_df |> select(HIT, BLK, PIM) |> na.omit()
 
-glimpse(feat)
+# glimpse(feat)
 
 nhl_pca <- prcomp(feat, center = TRUE, scale. = TRUE)
+
+# summary(nhl_pca)
 
 library(factoextra)
 # fviz_pca_var(): projection of variables
@@ -350,6 +352,10 @@ complete_df_long <- complete_df_long |> full_join(num_seasons) |> select(-n)
 complete_df_long <- complete_df_long |> 
   filter(num_seasons >= 5)
 ```
+
+
+
+## Playmaker Consistency Metric
 
 
 
@@ -501,6 +507,8 @@ master_playmaker <- playmaker_score |>
 library(ggbeeswarm)
 library(ggrepel)
 
+
+# segment into 4 quartiles for skill level of ability
 master_playmaker |> 
   na.omit() |> 
   mutate(Groupings = ifelse(total_zscore <= 0.5 & total_zscore >= -0.5, "Consistent", ifelse(total_zscore >= 0.5, "Good Consistent", "Bad Consistent"))) |> 
@@ -508,17 +516,210 @@ master_playmaker |>
   # summarise(mean_EVA = mean(EVA)) |> 
   ggplot(aes(x = Year, y = total_zscore, label = Player)) +
   # geom_point(aes(color = Groupings), alpha = 0.2) +
-  geom_beeswarm(aes(color = Groupings), alpha = 0.2) +
+  geom_beeswarm(alpha = 0.3) +
   geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
   geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
-  geom_label_repel(size = 2, box.padding = .05) +
-  scale_x_discrete(expand = c(0.1, 0))
+  geom_label_repel(size = 2, box.padding = 0.25) +
+  scale_x_discrete(expand = c(0.1, 0)) + 
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  theme_light()
 
 master_playmaker |> 
   filter(Player == "Sidney Crosby") |> 
   ggplot(aes(x = Year, y = total_zscore)) +
   geom_point() +
-  geom_hline(aes(yintercept = mean_zscore))
+  geom_hline(aes(yintercept = mean_zscore)) + 
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  theme_light()
+```
+
+
+
+
+## Energy Consistency Metric
+
+
+
+```{r}
+energy <- complete_df_long |> select(Player, PlayerID, starts_with("TOI_"), contains("HIT_"), contains("BLK_"), contains("PIM_"))
+
+energy2 <- energy |> 
+  group_by(Player, PlayerID) |> 
+  summarise(
+    `HIT/60_2023` = (HIT_2023 / TOI_2023) * 60,
+    `HIT/60_2022` = (HIT_2022 / TOI_2022) * 60,
+    `HIT/60_2021` = (HIT_2021 / TOI_2021) * 60,
+    `HIT/60_2020` = (HIT_2020 / TOI_2020) * 60,
+    `HIT/60_2019` = (HIT_2019 / TOI_2019) * 60,
+    `HIT/60_2018` = (HIT_2018 / TOI_2018) * 60,
+    `HIT/60_2017` = (HIT_2017 / TOI_2017) * 60,
+    `HIT/60_2016` = (HIT_2016 / TOI_2016) * 60,
+    
+    `BLK/60_2023` = (BLK_2023 / TOI_2023) * 60,
+    `BLK/60_2022` = (BLK_2022 / TOI_2022) * 60,
+    `BLK/60_2021` = (BLK_2021 / TOI_2021) * 60,
+    `BLK/60_2020` = (BLK_2020 / TOI_2020) * 60,
+    `BLK/60_2019` = (BLK_2019 / TOI_2019) * 60,
+    `BLK/60_2018` = (BLK_2018 / TOI_2018) * 60,
+    `BLK/60_2017` = (BLK_2017 / TOI_2017) * 60,
+    `BLK/60_2016` = (BLK_2016 / TOI_2016) * 60,
+    
+    `PIM/60_2023` = (PIM_2023 / TOI_2023) * 60,
+    `PIM/60_2022` = (PIM_2022 / TOI_2022) * 60,
+    `PIM/60_2021` = (PIM_2021 / TOI_2021) * 60,
+    `PIM/60_2020` = (PIM_2020 / TOI_2020) * 60,
+    `PIM/60_2019` = (PIM_2019 / TOI_2019) * 60,
+    `PIM/60_2018` = (PIM_2018 / TOI_2018) * 60,
+    `PIM/60_2017` = (PIM_2017 / TOI_2017) * 60,
+    `PIM/60_2016` = (PIM_2016 / TOI_2016) * 60,
+         )
+
+energy3 <- energy2 |> 
+  ungroup() |> 
+  mutate(mean_HIT_23 = mean(`HIT/60_2023`, na.rm = TRUE),
+         mean_HIT_22 = mean(`HIT/60_2022`, na.rm = TRUE),
+         mean_HIT_21 = mean(`HIT/60_2021`, na.rm = TRUE),
+         mean_HIT_20 = mean(`HIT/60_2020`, na.rm = TRUE),
+         mean_HIT_19 = mean(`HIT/60_2019`, na.rm = TRUE),
+         mean_HIT_18 = mean(`HIT/60_2018`, na.rm = TRUE),
+         mean_HIT_17 = mean(`HIT/60_2017`, na.rm = TRUE),
+         mean_HIT_16 = mean(`HIT/60_2016`, na.rm = TRUE),
+         
+         mean_BLK_23 = mean(`BLK/60_2023`, na.rm = TRUE),
+         mean_BLK_22 = mean(`BLK/60_2022`, na.rm = TRUE),
+         mean_BLK_21 = mean(`BLK/60_2021`, na.rm = TRUE),
+         mean_BLK_20 = mean(`BLK/60_2020`, na.rm = TRUE),
+         mean_BLK_19 = mean(`BLK/60_2019`, na.rm = TRUE),
+         mean_BLK_18 = mean(`BLK/60_2018`, na.rm = TRUE),
+         mean_BLK_17 = mean(`BLK/60_2017`, na.rm = TRUE),
+         mean_BLK_16 = mean(`BLK/60_2016`, na.rm = TRUE),
+         
+         mean_PIM_23 = mean(`PIM/60_2023`, na.rm = TRUE),
+         mean_PIM_22 = mean(`PIM/60_2022`, na.rm = TRUE),
+         mean_PIM_21 = mean(`PIM/60_2021`, na.rm = TRUE),
+         mean_PIM_20 = mean(`PIM/60_2020`, na.rm = TRUE),
+         mean_PIM_19 = mean(`PIM/60_2019`, na.rm = TRUE),
+         mean_PIM_18 = mean(`PIM/60_2018`, na.rm = TRUE),
+         mean_PIM_17 = mean(`PIM/60_2017`, na.rm = TRUE),
+         mean_PIM_16 = mean(`PIM/60_2016`, na.rm = TRUE),
+         
+         
+         sd_HIT_23 = sd(`HIT/60_2023`, na.rm = TRUE),
+         sd_HIT_22 = sd(`HIT/60_2022`, na.rm = TRUE),
+         sd_HIT_21 = sd(`HIT/60_2021`, na.rm = TRUE),
+         sd_HIT_20 = sd(`HIT/60_2020`, na.rm = TRUE),
+         sd_HIT_19 = sd(`HIT/60_2019`, na.rm = TRUE),
+         sd_HIT_18 = sd(`HIT/60_2018`, na.rm = TRUE),
+         sd_HIT_17 = sd(`HIT/60_2017`, na.rm = TRUE),
+         sd_HIT_16 = sd(`HIT/60_2016`, na.rm = TRUE),
+         
+         sd_BLK_23 = sd(`BLK/60_2023`, na.rm = TRUE),
+         sd_BLK_22 = sd(`BLK/60_2022`, na.rm = TRUE),
+         sd_BLK_21 = sd(`BLK/60_2021`, na.rm = TRUE),
+         sd_BLK_20 = sd(`BLK/60_2020`, na.rm = TRUE),
+         sd_BLK_19 = sd(`BLK/60_2019`, na.rm = TRUE),
+         sd_BLK_18 = sd(`BLK/60_2018`, na.rm = TRUE),
+         sd_BLK_17 = sd(`BLK/60_2017`, na.rm = TRUE),
+         sd_BLK_16 = sd(`BLK/60_2016`, na.rm = TRUE),
+         
+         sd_PIM_23 = sd(`PIM/60_2023`, na.rm = TRUE),
+         sd_PIM_22 = sd(`PIM/60_2022`, na.rm = TRUE),
+         sd_PIM_21 = sd(`PIM/60_2021`, na.rm = TRUE),
+         sd_PIM_20 = sd(`PIM/60_2020`, na.rm = TRUE),
+         sd_PIM_19 = sd(`PIM/60_2019`, na.rm = TRUE),
+         sd_PIM_18 = sd(`PIM/60_2018`, na.rm = TRUE),
+         sd_PIM_17 = sd(`PIM/60_2017`, na.rm = TRUE),
+         sd_PIM_16 = sd(`PIM/60_2016`, na.rm = TRUE),
+         )
+
+energy_score <- energy3 |> 
+  group_by(Player, PlayerID) |> 
+  summarise(
+    HIT_zscore_2023 = (`HIT/60_2023` - `mean_HIT_23`) / `sd_HIT_23`,
+    HIT_zscore_2022 = (`HIT/60_2022` - `mean_HIT_22`) / `sd_HIT_22`,
+    HIT_zscore_2021 = (`HIT/60_2021` - `mean_HIT_21`) / `sd_HIT_21`,
+    HIT_zscore_2020 = (`HIT/60_2020` - `mean_HIT_20`) / `sd_HIT_20`,
+    HIT_zscore_2019 = (`HIT/60_2019` - `mean_HIT_19`) / `sd_HIT_19`,
+    HIT_zscore_2018 = (`HIT/60_2018` - `mean_HIT_18`) / `sd_HIT_18`,
+    HIT_zscore_2017 = (`HIT/60_2017` - `mean_HIT_17`) / `sd_HIT_17`,
+    HIT_zscore_2016 = (`HIT/60_2016` - `mean_HIT_16`) / `sd_HIT_16`,
+    
+    BLK_zscore_2023 = (`BLK/60_2023` - `mean_BLK_23`) / `sd_BLK_23`,
+    BLK_zscore_2022 = (`BLK/60_2022` - `mean_BLK_22`) / `sd_BLK_22`,
+    BLK_zscore_2021 = (`BLK/60_2021` - `mean_BLK_21`) / `sd_BLK_21`,
+    BLK_zscore_2020 = (`BLK/60_2020` - `mean_BLK_20`) / `sd_BLK_20`,
+    BLK_zscore_2019 = (`BLK/60_2019` - `mean_BLK_19`) / `sd_BLK_19`,
+    BLK_zscore_2018 = (`BLK/60_2018` - `mean_BLK_18`) / `sd_BLK_18`,
+    BLK_zscore_2017 = (`BLK/60_2017` - `mean_BLK_17`) / `sd_BLK_17`,
+    BLK_zscore_2016 = (`BLK/60_2016` - `mean_BLK_16`) / `sd_BLK_16`,
+    
+    PIM_zscore_2023 = (`PIM/60_2023` - `mean_PIM_23`) / `sd_PIM_23`,
+    PIM_zscore_2022 = (`PIM/60_2022` - `mean_PIM_22`) / `sd_PIM_22`,
+    PIM_zscore_2021 = (`PIM/60_2021` - `mean_PIM_21`) / `sd_PIM_21`,
+    PIM_zscore_2020 = (`PIM/60_2020` - `mean_PIM_20`) / `sd_PIM_20`,
+    PIM_zscore_2019 = (`PIM/60_2019` - `mean_PIM_19`) / `sd_PIM_19`,
+    PIM_zscore_2018 = (`PIM/60_2018` - `mean_PIM_18`) / `sd_PIM_18`,
+    PIM_zscore_2017 = (`PIM/60_2017` - `mean_PIM_17`) / `sd_PIM_17`,
+    PIM_zscore_2016 = (`PIM/60_2016` - `mean_PIM_16`) / `sd_PIM_16`
+            )
+```
+
+
+
+```{r}
+master_energy <- energy_score |> 
+  select(-PlayerID) |> 
+  pivot_longer(-c(Player),
+               names_to = c(".value", "Year"), 
+               names_sep = "_zscore_") |> 
+  group_by(Player, Year) |> 
+  mutate(total_zscore = sum(2/5 * HIT, 2/5 * BLK, 1/5 * PIM)) |> 
+  ungroup() |> 
+  group_by(Player) |> 
+  mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
+```
+
+
+
+```{r}
+library(ggbeeswarm)
+library(ggrepel)
+
+master_energy |> 
+  na.omit() |> 
+  mutate(Groupings = ifelse(total_zscore <= 0.5 & total_zscore >= -0.5, "Consistent", ifelse(total_zscore >= 0.5, "Good Consistent", "Bad Consistent"))) |> 
+  ggplot(aes(x = Year, y = total_zscore, label = Player)) +
+  # geom_point(aes(color = Groupings), alpha = 0.2) +
+  geom_beeswarm(alpha = 0.3) +
+  # geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
+  # geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
+  geom_label_repel(size = 2, box.padding = 0.5) + 
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) + 
+  theme_light()
+
+master_energy |> 
+  filter(Player == "Ryan Reaves") |> 
+  ggplot(aes(x = Year, y = total_zscore)) +
+  geom_point() +
+  geom_hline(aes(yintercept = mean_zscore)) +
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  theme_light()
 ```
 
 
