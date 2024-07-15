@@ -687,27 +687,27 @@ print(normalized_loadings)
 
 
 
-library(factoextra)
-# fviz_pca_var(): projection of variables
-# fviz_pca_ind(): display observations with first two PCs
-nhl_pca |>
-  fviz_pca_biplot(label = "var",
-                  alpha.ind = 0.25,
-                  alpha.var = 0.75,
-                  col.var = "darkblue",
-                  repel = TRUE)
-
-nhl_pca |>
-  fviz_eig(addlabels = TRUE) +
-  geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
-
-library(broom)
-nhl_pca |>
-  tidy(matrix = "eigenvalues") |>
-  ggplot(aes(x = PC, y = cumulative)) +
-  geom_line() +
-  geom_point() +
-  scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
+# library(factoextra)
+# # fviz_pca_var(): projection of variables
+# # fviz_pca_ind(): display observations with first two PCs
+# nhl_pca |>
+#   fviz_pca_biplot(label = "var",
+#                   alpha.ind = 0.25,
+#                   alpha.var = 0.75,
+#                   col.var = "darkblue",
+#                   repel = TRUE)
+# 
+# nhl_pca |>
+#   fviz_eig(addlabels = TRUE) +
+#   geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
+# 
+# library(broom)
+# nhl_pca |>
+#   tidy(matrix = "eigenvalues") |>
+#   ggplot(aes(x = PC, y = cumulative)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
 ```
 
 
@@ -720,20 +720,83 @@ master_energy <- master_energy |>
   group_by(Player) |> 
   mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
 
+# master_energy <- master_energy |> 
+#   ungroup() |> 
+#   mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
+#          qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
+#          qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
+#          consistent = ifelse(total_zscore <= qtr1, "Worse Consistent", ifelse(total_zscore >= qtr3, "Great Consistent", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good Consistent", "Bad Consistent"))))
+
 master_energy <- master_energy |> 
   ungroup() |> 
   mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
          qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
          qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
-         consistent = ifelse(total_zscore <= qtr1, "Worse Consistent", ifelse(total_zscore >= qtr3, "Great Consistent", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good Consistent", "Bad Consistent"))))
+         skill = ifelse(total_zscore <= qtr1, "Worst", ifelse(total_zscore >= qtr3, "Great", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good", "Bad")))
+         )
 
-master_energy |> 
-  group_by(Player, consistent) |> 
-  summarise(num_consistent = n()) |> 
+
+master_energy2 <- master_energy |> 
+  group_by(Player, skill) |> 
+  summarise(num_consistent = n(),
+            mean_zscore = mean_zscore) |> 
   ungroup() |> 
   group_by(Player) |> 
-  mutate()
+  arrange(Player, desc(num_consistent)) |> 
+  filter(row_number()==1) |> 
+  ungroup() |> 
+  mutate(consistent = ifelse(num_consistent >= 7, "Good Consistent", ifelse(num_consistent <= 6 & num_consistent >= 5, "Ok Consistent", "Bad Consistent")))
+  
+
+
+master_energy |> 
+  na.omit() |> 
+  ggplot(aes(x = Year, y = total_zscore, label = Player)) +
+  geom_beeswarm(alpha = 0.3) +
+  geom_label_repel(size = 2, box.padding = 0.25) + 
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) + 
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 6), breaks = seq(-2, 6, by = 1))
+
+
 ```
+
+
+
+```{r}
+master_energy2 |> 
+  ggplot(aes(y = consistent)) +
+  geom_bar(aes(fill = consistent)) +
+  scale_y_discrete(limits=c('Good Consistent', 'Ok Consistent', 'Bad Consistent')) +
+  scale_fill_manual(values = c("Bad Consistent" = "purple1", "Ok Consistent" = "orange", "Good Consistent" = "blue")) +
+  labs(
+    x = "Number of Players",
+    y = "<-- Better 'Energy' Ability",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  theme(legend.position = "none") +
+  scale_x_continuous(limits = c(0, 250), breaks = seq(0, 250, by = 50))
+
+
+master_energy2 |> 
+  na.omit() |> 
+  ggplot(aes(y = consistent)) +
+  geom_bar(aes(fill = skill), position = "dodge") +
+  # scale_y_discrete(limits=c('Good Consistent', 'Ok Consistent', 'Bad Consistent')) +
+  scale_fill_discrete(breaks=c('Worst', 'Bad', 'Good', 'Great')) +
+  labs(
+    x = "Number of Players",
+    y = "<-- Better 'Energy' Ability",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  # theme(legend.position = "none") +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10))
+```
+
 
 
 
@@ -744,7 +807,6 @@ library(ggrepel)
 
 master_energy |> 
   na.omit() |> 
-  mutate(Groupings = ifelse(total_zscore <= 0.5 & total_zscore >= -0.5, "Consistent", ifelse(total_zscore >= 0.5, "Good Consistent", "Bad Consistent"))) |> 
   ggplot(aes(x = Year, y = total_zscore, label = Player)) +
   # geom_point(aes(color = Groupings), alpha = 0.2) +
   geom_beeswarm(alpha = 0.3) +
