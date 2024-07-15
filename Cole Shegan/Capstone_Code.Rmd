@@ -687,27 +687,27 @@ print(normalized_loadings)
 
 
 
-# library(factoextra)
-# # fviz_pca_var(): projection of variables
-# # fviz_pca_ind(): display observations with first two PCs
-# nhl_pca |> 
-#   fviz_pca_biplot(label = "var",
-#                   alpha.ind = 0.25,
-#                   alpha.var = 0.75,
-#                   col.var = "darkblue",
-#                   repel = TRUE)
-# 
-# nhl_pca |> 
-#   fviz_eig(addlabels = TRUE) +
-#   geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
-# 
-# library(broom)
-# nhl_pca |>
-#   tidy(matrix = "eigenvalues") |>
-#   ggplot(aes(x = PC, y = cumulative)) +
-#   geom_line() + 
-#   geom_point() +
-#   scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
+library(factoextra)
+# fviz_pca_var(): projection of variables
+# fviz_pca_ind(): display observations with first two PCs
+nhl_pca |>
+  fviz_pca_biplot(label = "var",
+                  alpha.ind = 0.25,
+                  alpha.var = 0.75,
+                  col.var = "darkblue",
+                  repel = TRUE)
+
+nhl_pca |>
+  fviz_eig(addlabels = TRUE) +
+  geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
+
+library(broom)
+nhl_pca |>
+  tidy(matrix = "eigenvalues") |>
+  ggplot(aes(x = PC, y = cumulative)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
 ```
 
 
@@ -719,6 +719,20 @@ master_energy <- master_energy |>
   ungroup() |> 
   group_by(Player) |> 
   mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
+
+master_energy <- master_energy |> 
+  ungroup() |> 
+  mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
+         qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
+         qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
+         consistent = ifelse(total_zscore <= qtr1, "Worse Consistent", ifelse(total_zscore >= qtr3, "Great Consistent", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good Consistent", "Bad Consistent"))))
+
+master_energy |> 
+  group_by(Player, consistent) |> 
+  summarise(num_consistent = n()) |> 
+  ungroup() |> 
+  group_by(Player) |> 
+  mutate()
 ```
 
 
@@ -742,19 +756,40 @@ master_energy |>
     y = "Z-Score",
     caption = "Data Courtesy of Hockey-Reference"
   ) + 
-  theme_light()
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 6), breaks = seq(-2, 6, by = 1))
 
 master_energy |> 
-  filter(Player == "Ryan Reaves") |> 
+  filter(Player == "Sidney Crosby") |> 
   ggplot(aes(x = Year, y = total_zscore)) +
   geom_point() +
-  geom_hline(aes(yintercept = mean_zscore)) +
+  geom_hline(aes(yintercept = mean_zscore), color = "blue") +
+  geom_hline(aes(yintercept = qtr1)) +
+  geom_hline(aes(yintercept = qtr2)) +
+  geom_hline(aes(yintercept = qtr3)) +
   labs(
     x = "Season Starting Year",
     y = "Z-Score",
     caption = "Data Courtesy of Hockey-Reference"
   ) +
-  theme_light()
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 6), breaks = seq(-2, 6, by = 1))
+
+master_energy |> 
+  filter(Player == "Ryan Reaves") |> 
+  ggplot(aes(x = Year, y = total_zscore)) +
+  geom_point() +
+  geom_hline(aes(yintercept = mean_zscore), color = "blue") +
+  geom_hline(aes(yintercept = qtr1)) +
+  geom_hline(aes(yintercept = qtr2)) +
+  geom_hline(aes(yintercept = qtr3)) +
+  labs(
+    x = "Season Starting Year",
+    y = "Z-Score",
+    caption = "Data Courtesy of Hockey-Reference"
+  ) +
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 6), breaks = seq(-2, 6, by = 1))
 ```
 
 
