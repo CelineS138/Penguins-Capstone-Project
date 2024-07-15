@@ -301,42 +301,6 @@ complete_df <- complete_df |>
 
 
 
-```{r}
-feat <- complete_df |> select(HIT, BLK, PIM) |> na.omit()
-
-# glimpse(feat)
-
-nhl_pca <- prcomp(feat, center = TRUE, scale. = TRUE)
-
-# summary(nhl_pca)
-
-library(factoextra)
-# fviz_pca_var(): projection of variables
-# fviz_pca_ind(): display observations with first two PCs
-nhl_pca |> 
-  fviz_pca_biplot(label = "var",
-                  alpha.ind = 0.25,
-                  alpha.var = 0.75,
-                  col.var = "darkblue",
-                  repel = TRUE)
-
-nhl_pca |> 
-  fviz_eig(addlabels = TRUE) +
-  geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
-
-library(broom)
-nhl_pca |>
-  tidy(matrix = "eigenvalues") |>
-  ggplot(aes(x = PC, y = cumulative)) +
-  geom_line() + 
-  geom_point() +
-  scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
-```
-
-
-
-
-
 
 ```{r}
 complete_df_long1 <- cbind(long_basic_df, long_adv_df, long_toi_df, long_misc_df)
@@ -679,13 +643,84 @@ master_energy <- energy_score |>
   select(-PlayerID) |> 
   pivot_longer(-c(Player),
                names_to = c(".value", "Year"), 
-               names_sep = "_zscore_") |> 
+               names_sep = "_zscore_")
+```
+
+
+
+```{r}
+feat <- master_energy |> 
+  ungroup() |> 
+  select(HIT, BLK, PIM) |> na.omit()
+
+# glimpse(feat)
+
+nhl_pca <- prcomp(feat, center = TRUE, scale. = TRUE)
+
+nhl_pca2 <- princomp(feat)
+
+# summary(nhl_pca)
+
+
+# Assuming nhl_pca2$loadings is your loadings matrix
+
+# Get the loadings matrix
+loadings <- nhl_pca2$loadings
+
+# Function to normalize loadings
+normalize_loadings <- function(loadings) {
+  # Calculate the sum of the absolute values of the loadings for each component
+  col_sums <- colSums(abs(loadings), na.rm = TRUE)
+  
+  # Divide each loading by the sum of the absolute values of its component
+  normalized_loadings <- sweep(loadings, 2, col_sums, FUN = "/")
+  
+  return(normalized_loadings)
+}
+
+# Normalize the loadings
+normalized_loadings <- normalize_loadings(loadings)
+
+# Print the normalized loadings
+print(normalized_loadings)
+
+
+
+
+# library(factoextra)
+# # fviz_pca_var(): projection of variables
+# # fviz_pca_ind(): display observations with first two PCs
+# nhl_pca |> 
+#   fviz_pca_biplot(label = "var",
+#                   alpha.ind = 0.25,
+#                   alpha.var = 0.75,
+#                   col.var = "darkblue",
+#                   repel = TRUE)
+# 
+# nhl_pca |> 
+#   fviz_eig(addlabels = TRUE) +
+#   geom_hline(yintercept = 100 * (1 / ncol(nhl_pca$x)), linetype = "dashed", color = "darkred")
+# 
+# library(broom)
+# nhl_pca |>
+#   tidy(matrix = "eigenvalues") |>
+#   ggplot(aes(x = PC, y = cumulative)) +
+#   geom_line() + 
+#   geom_point() +
+#   scale_x_continuous(breaks = 1:ncol(nhl_pca$x))
+```
+
+
+
+```{r}
+master_energy <- master_energy |> 
   group_by(Player, Year) |> 
-  mutate(total_zscore = sum(2/5 * HIT, 2/5 * BLK, 1/5 * PIM)) |> 
+  mutate(total_zscore = sum(normalized_loadings[1, 1] * HIT, normalized_loadings[2, 1] * BLK, normalized_loadings[3, 1] * PIM)) |> 
   ungroup() |> 
   group_by(Player) |> 
   mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
 ```
+
 
 
 
@@ -701,7 +736,7 @@ master_energy |>
   geom_beeswarm(alpha = 0.3) +
   # geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
   # geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
-  geom_label_repel(size = 2, box.padding = 0.5) + 
+  geom_label_repel(size = 2, box.padding = 0.25) + 
   labs(
     x = "Season Starting Year",
     y = "Z-Score",
