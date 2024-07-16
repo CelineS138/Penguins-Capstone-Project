@@ -514,7 +514,7 @@ master_playmaker <- master_playmaker |>
   mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
          qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
          qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
-         skill = ifelse(total_zscore <= qtr1, "Worst", ifelse(total_zscore >= qtr3, "Great", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good", "Bad")))
+         skill = ifelse(total_zscore <= qtr1, "Low", ifelse(total_zscore >= qtr3, "High", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Mig-High", "Mid-Low")))
          )
 
 
@@ -797,7 +797,7 @@ master_energy <- master_energy |>
   mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
          qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
          qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
-         skill = ifelse(total_zscore <= qtr1, "Worst", ifelse(total_zscore >= qtr3, "Great", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good", "Bad")))
+         skill = ifelse(total_zscore <= qtr1, "Low", ifelse(total_zscore >= qtr3, "High", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Mid-High", "Mid-Low")))
          )
 
 
@@ -834,21 +834,22 @@ master_energy2 |>
 # Convert 'consistent' to a factor and set the order of levels
 master_energy2$consistent <- factor(master_energy2$consistent, levels = c('Bad Consistent', 'Ok Consistent', 'Good Consistent'))
 
-master_energy2$skill <- factor(master_energy2$skill, levels = c('Worst', 'Bad', 'Good', 'Great'))
+master_energy2$skill <- factor(master_energy2$skill, levels = c('Low', 'Mid-Low', 'Mid-High', 'High'))
 
 # Create the plot
 master_energy2 |> 
   na.omit() |> 
   ggplot(aes(y = consistent)) +
   geom_bar(aes(fill = skill), position = "dodge") +
-  scale_fill_discrete(breaks=c('Worst', 'Bad', 'Good', 'Great')) +
+  scale_fill_discrete(breaks=c('Low', 'Mid-Low', 'Mid-High', 'High')) +
   labs(
     x = "Number of Players",
     y = "Type of Consistency",
-    fill = "Skill in 'Energy' Ability",
+    fill = "'Energy' Skill",
     caption = "Data Courtesy of Hockey-Reference"
   ) +
-  scale_x_continuous(limits = c(0, 90), breaks = seq(0, 90, by = 10))
+  scale_x_continuous(limits = c(0, 90), breaks = seq(0, 90, by = 10)) +
+  theme_light()
 
 ```
 
