@@ -237,7 +237,7 @@ player_pos <- misc_df_pos |>
 
 ```{r}
 long_misc_df <- misc_df |> 
-  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GC, `G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), names_from = start_year)
+  pivot_wider(id_cols = c(Player, PlayerID), values_from = c(GC, `G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `xGF`, `OPS`, `DPS`, `PS`), names_from = start_year)
 
 long_misc_df <- long_misc_df %>% 
   unnest() %>% 
@@ -324,7 +324,7 @@ complete_df_long <- complete_df_long |>
 
 
 ```{r}
-playmaker <- complete_df_long |> select(Player, PlayerID, starts_with("GC"), starts_with("TOI_"), contains("EVA_"), contains("PPA_"))
+playmaker <- complete_df_long |> select(Player, PlayerID, starts_with("GC"), starts_with("TOI_"), contains("EVA_"), contains("xGF"))
 
 playmaker2 <- playmaker |> 
   group_by(Player, PlayerID) |> 
@@ -338,14 +338,14 @@ playmaker2 <- playmaker |>
     `EVA/60_2017` = (EVA_2017 / TOI_2017) * 60,
     `EVA/60_2016` = (EVA_2016 / TOI_2016) * 60,
     
-    `PPA/60_2023` = (PPA_2023 / TOI_2023) * 60,
-    `PPA/60_2022` = (PPA_2022 / TOI_2022) * 60,
-    `PPA/60_2021` = (PPA_2021 / TOI_2021) * 60,
-    `PPA/60_2020` = (PPA_2020 / TOI_2020) * 60,
-    `PPA/60_2019` = (PPA_2019 / TOI_2019) * 60,
-    `PPA/60_2018` = (PPA_2018 / TOI_2018) * 60,
-    `PPA/60_2017` = (PPA_2017 / TOI_2017) * 60,
-    `PPA/60_2016` = (PPA_2016 / TOI_2016) * 60,
+    `xGF/60_2023` = (xGF_2023 / TOI_2023) * 60,
+    `xGF/60_2022` = (xGF_2022 / TOI_2022) * 60,
+    `xGF/60_2021` = (xGF_2021 / TOI_2021) * 60,
+    `xGF/60_2020` = (xGF_2020 / TOI_2020) * 60,
+    `xGF/60_2019` = (xGF_2019 / TOI_2019) * 60,
+    `xGF/60_2018` = (xGF_2018 / TOI_2018) * 60,
+    `xGF/60_2017` = (xGF_2017 / TOI_2017) * 60,
+    `xGF/60_2016` = (xGF_2016 / TOI_2016) * 60,
     
     `GC/60_2023` = (GC_2023 / TOI_2023) * 60,
     `GC/60_2022` = (GC_2022 / TOI_2022) * 60,
@@ -368,14 +368,14 @@ playmaker3 <- playmaker2 |>
          mean_EVA_17 = mean(`EVA/60_2017`, na.rm = TRUE),
          mean_EVA_16 = mean(`EVA/60_2016`, na.rm = TRUE),
          
-         mean_PPA_23 = mean(`PPA/60_2023`, na.rm = TRUE),
-         mean_PPA_22 = mean(`PPA/60_2022`, na.rm = TRUE),
-         mean_PPA_21 = mean(`PPA/60_2021`, na.rm = TRUE),
-         mean_PPA_20 = mean(`PPA/60_2020`, na.rm = TRUE),
-         mean_PPA_19 = mean(`PPA/60_2019`, na.rm = TRUE),
-         mean_PPA_18 = mean(`PPA/60_2018`, na.rm = TRUE),
-         mean_PPA_17 = mean(`PPA/60_2017`, na.rm = TRUE),
-         mean_PPA_16 = mean(`PPA/60_2016`, na.rm = TRUE),
+         mean_xGF_23 = mean(`xGF/60_2023`, na.rm = TRUE),
+         mean_xGF_22 = mean(`xGF/60_2022`, na.rm = TRUE),
+         mean_xGF_21 = mean(`xGF/60_2021`, na.rm = TRUE),
+         mean_xGF_20 = mean(`xGF/60_2020`, na.rm = TRUE),
+         mean_xGF_19 = mean(`xGF/60_2019`, na.rm = TRUE),
+         mean_xGF_18 = mean(`xGF/60_2018`, na.rm = TRUE),
+         mean_xGF_17 = mean(`xGF/60_2017`, na.rm = TRUE),
+         mean_xGF_16 = mean(`xGF/60_2016`, na.rm = TRUE),
          
          mean_GC_23 = mean(`GC/60_2023`, na.rm = TRUE),
          mean_GC_22 = mean(`GC/60_2022`, na.rm = TRUE),
@@ -396,14 +396,14 @@ playmaker3 <- playmaker2 |>
          sd_EVA_17 = sd(`EVA/60_2017`, na.rm = TRUE),
          sd_EVA_16 = sd(`EVA/60_2016`, na.rm = TRUE),
          
-         sd_PPA_23 = sd(`PPA/60_2023`, na.rm = TRUE),
-         sd_PPA_22 = sd(`PPA/60_2022`, na.rm = TRUE),
-         sd_PPA_21 = sd(`PPA/60_2021`, na.rm = TRUE),
-         sd_PPA_20 = sd(`PPA/60_2020`, na.rm = TRUE),
-         sd_PPA_19 = sd(`PPA/60_2019`, na.rm = TRUE),
-         sd_PPA_18 = sd(`PPA/60_2018`, na.rm = TRUE),
-         sd_PPA_17 = sd(`PPA/60_2017`, na.rm = TRUE),
-         sd_PPA_16 = sd(`PPA/60_2016`, na.rm = TRUE),
+         sd_xGF_23 = sd(`xGF/60_2023`, na.rm = TRUE),
+         sd_xGF_22 = sd(`xGF/60_2022`, na.rm = TRUE),
+         sd_xGF_21 = sd(`xGF/60_2021`, na.rm = TRUE),
+         sd_xGF_20 = sd(`xGF/60_2020`, na.rm = TRUE),
+         sd_xGF_19 = sd(`xGF/60_2019`, na.rm = TRUE),
+         sd_xGF_18 = sd(`xGF/60_2018`, na.rm = TRUE),
+         sd_xGF_17 = sd(`xGF/60_2017`, na.rm = TRUE),
+         sd_xGF_16 = sd(`xGF/60_2016`, na.rm = TRUE),
          
          sd_GC_23 = sd(`GC/60_2023`, na.rm = TRUE),
          sd_GC_22 = sd(`GC/60_2022`, na.rm = TRUE),
@@ -428,14 +428,14 @@ playmaker_score <- playmaker3 |>
     EVA_zscore_2017 = (`EVA/60_2017` - `mean_EVA_17`) / `sd_EVA_17`,
     EVA_zscore_2016 = (`EVA/60_2016` - `mean_EVA_16`) / `sd_EVA_16`,
     
-    PPA_zscore_2023 = (`PPA/60_2023` - `mean_PPA_23`) / `sd_PPA_23`,
-    PPA_zscore_2022 = (`PPA/60_2022` - `mean_PPA_22`) / `sd_PPA_22`,
-    PPA_zscore_2021 = (`PPA/60_2021` - `mean_PPA_21`) / `sd_PPA_21`,
-    PPA_zscore_2020 = (`PPA/60_2020` - `mean_PPA_20`) / `sd_PPA_20`,
-    PPA_zscore_2019 = (`PPA/60_2019` - `mean_PPA_19`) / `sd_PPA_19`,
-    PPA_zscore_2018 = (`PPA/60_2018` - `mean_PPA_18`) / `sd_PPA_18`,
-    PPA_zscore_2017 = (`PPA/60_2017` - `mean_PPA_17`) / `sd_PPA_17`,
-    PPA_zscore_2016 = (`PPA/60_2016` - `mean_PPA_16`) / `sd_PPA_16`,
+    xGF_zscore_2023 = (`xGF/60_2023` - `mean_xGF_23`) / `sd_xGF_23`,
+    xGF_zscore_2022 = (`xGF/60_2022` - `mean_xGF_22`) / `sd_xGF_22`,
+    xGF_zscore_2021 = (`xGF/60_2021` - `mean_xGF_21`) / `sd_xGF_21`,
+    xGF_zscore_2020 = (`xGF/60_2020` - `mean_xGF_20`) / `sd_xGF_20`,
+    xGF_zscore_2019 = (`xGF/60_2019` - `mean_xGF_19`) / `sd_xGF_19`,
+    xGF_zscore_2018 = (`xGF/60_2018` - `mean_xGF_18`) / `sd_xGF_18`,
+    xGF_zscore_2017 = (`xGF/60_2017` - `mean_xGF_17`) / `sd_xGF_17`,
+    xGF_zscore_2016 = (`xGF/60_2016` - `mean_xGF_16`) / `sd_xGF_16`,
     
     GC_zscore_2023 = (`GC/60_2023` - `mean_GC_23`) / `sd_GC_23`,
     GC_zscore_2022 = (`GC/60_2022` - `mean_GC_22`) / `sd_GC_22`,
@@ -452,18 +452,85 @@ playmaker_score <- playmaker3 |>
 
 
 
+
+
 ```{r}
 master_playmaker <- playmaker_score |> 
   select(-PlayerID) |> 
   pivot_longer(-c(Player),
                names_to = c(".value", "Year"), 
-               names_sep = "_zscore_") |> 
+               names_sep = "_zscore_")
+```
+
+
+
+
+```{r}
+feat <- master_playmaker |> 
+  ungroup() |> 
+  select(EVA, xGF, GC) |> na.omit()
+
+nhl_pca <- princomp(feat)
+
+# summary(nhl_pca)
+
+
+# Assuming nhl_pca2$loadings is your loadings matrix
+
+# Get the loadings matrix
+loadings <- nhl_pca$loadings
+
+# Function to normalize loadings
+normalize_loadings <- function(loadings) {
+  # Calculate the sum of the absolute values of the loadings for each component
+  col_sums <- colSums(abs(loadings), na.rm = TRUE)
+  
+  # Divide each loading by the sum of the absolute values of its component
+  normalized_loadings <- sweep(loadings, 2, col_sums, FUN = "/")
+  
+  return(normalized_loadings)
+}
+
+# Normalize the loadings
+normalized_loadings <- normalize_loadings(loadings)
+
+print(normalized_loadings)
+```
+
+
+
+
+```{r}
+master_playmaker <- master_playmaker |> 
   group_by(Player, Year) |> 
-  mutate(total_zscore = sum(1/2 * EVA, 1/2 * GC)) |> 
+  mutate(total_zscore = sum(normalized_loadings[1, 1] * EVA, normalized_loadings[2, 1] * xGF, normalized_loadings[3, 1] * GC)) |> 
   ungroup() |> 
   group_by(Player) |> 
   mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
+
+
+master_playmaker <- master_playmaker |> 
+  ungroup() |> 
+  mutate(qtr1 = quantile(total_zscore, 0.25, na.rm = TRUE),
+         qtr2 = quantile(total_zscore, 0.5, na.rm = TRUE),
+         qtr3 = quantile(total_zscore, 0.75, na.rm = TRUE),
+         skill = ifelse(total_zscore <= qtr1, "Worst", ifelse(total_zscore >= qtr3, "Great", ifelse(total_zscore < qtr3 & total_zscore >= qtr2, "Good", "Bad")))
+         )
+
+
+master_playmaker2 <- master_playmaker |> 
+  group_by(Player, skill) |> 
+  summarise(num_consistent = n(),
+            mean_zscore = mean_zscore) |> 
+  ungroup() |> 
+  group_by(Player) |> 
+  arrange(Player, desc(num_consistent)) |> 
+  filter(row_number()==1) |> 
+  ungroup() |> 
+  mutate(consistent = ifelse(num_consistent >= 7, "Good Consistent", ifelse(num_consistent <= 6 & num_consistent >= 5, "Ok Consistent", "Bad Consistent")))
 ```
+
+
 
 
 
@@ -471,38 +538,38 @@ master_playmaker <- playmaker_score |>
 library(ggbeeswarm)
 library(ggrepel)
 
-
-# segment into 4 quartiles for skill level of ability
 master_playmaker |> 
   na.omit() |> 
-  mutate(Groupings = ifelse(total_zscore <= 0.5 & total_zscore >= -0.5, "Consistent", ifelse(total_zscore >= 0.5, "Good Consistent", "Bad Consistent"))) |> 
-  # group_by(Groupings, Year) |> 
-  # summarise(mean_EVA = mean(EVA)) |> 
   ggplot(aes(x = Year, y = total_zscore, label = Player)) +
   # geom_point(aes(color = Groupings), alpha = 0.2) +
   geom_beeswarm(alpha = 0.3) +
-  geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
-  geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
-  geom_label_repel(size = 2, box.padding = 0.25) +
-  scale_x_discrete(expand = c(0.1, 0)) + 
+  geom_label_repel(size = 2, box.padding = 0.2) + 
+  geom_hline(aes(yintercept = qtr1)) +
+  geom_hline(aes(yintercept = qtr2)) +
+  geom_hline(aes(yintercept = qtr3)) +
   labs(
     x = "Season Starting Year",
     y = "Z-Score",
     caption = "Data Courtesy of Hockey-Reference"
-  ) +
-  theme_light()
+  ) + 
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 4), breaks = seq(-2, 4, by = 1))
 
 master_playmaker |> 
-  filter(Player == "Sidney Crosby") |> 
+  filter(Player == "Connor McDavid") |> 
   ggplot(aes(x = Year, y = total_zscore)) +
   geom_point() +
-  geom_hline(aes(yintercept = mean_zscore)) + 
+  geom_hline(aes(yintercept = mean_zscore), color = "blue") +
+  geom_hline(aes(yintercept = qtr1)) +
+  geom_hline(aes(yintercept = qtr2)) +
+  geom_hline(aes(yintercept = qtr3)) +
   labs(
     x = "Season Starting Year",
     y = "Z-Score",
     caption = "Data Courtesy of Hockey-Reference"
   ) +
-  theme_light()
+  theme_light() +
+  scale_y_continuous(limits = c(-2, 4), breaks = seq(-2, 4, by = 1))
 ```
 
 
@@ -649,15 +716,13 @@ master_energy <- energy_score |>
 
 
 ```{r}
-feat <- master_energy |> 
+feat2 <- master_energy |> 
   ungroup() |> 
   select(HIT, BLK, PIM) |> na.omit()
 
 # glimpse(feat)
 
-nhl_pca <- prcomp(feat, center = TRUE, scale. = TRUE)
-
-nhl_pca2 <- princomp(feat)
+nhl_pca2 <- princomp(feat2)
 
 # summary(nhl_pca)
 
@@ -665,7 +730,7 @@ nhl_pca2 <- princomp(feat)
 # Assuming nhl_pca2$loadings is your loadings matrix
 
 # Get the loadings matrix
-loadings <- nhl_pca2$loadings
+loadings2 <- nhl_pca2$loadings
 
 # Function to normalize loadings
 normalize_loadings <- function(loadings) {
@@ -679,10 +744,10 @@ normalize_loadings <- function(loadings) {
 }
 
 # Normalize the loadings
-normalized_loadings <- normalize_loadings(loadings)
+normalized_loadings2 <- normalize_loadings(loadings2)
 
 # Print the normalized loadings
-print(normalized_loadings)
+print(normalized_loadings2)
 
 
 
@@ -715,7 +780,7 @@ print(normalized_loadings)
 ```{r}
 master_energy <- master_energy |> 
   group_by(Player, Year) |> 
-  mutate(total_zscore = sum(normalized_loadings[1, 1] * HIT, normalized_loadings[2, 1] * BLK, normalized_loadings[3, 1] * PIM)) |> 
+  mutate(total_zscore = sum(normalized_loadings2[1, 1] * HIT, normalized_loadings2[2, 1] * BLK, normalized_loadings2[3, 1] * PIM)) |> 
   ungroup() |> 
   group_by(Player) |> 
   mutate(mean_zscore = mean(total_zscore, na.rm = TRUE))
@@ -746,21 +811,6 @@ master_energy2 <- master_energy |>
   filter(row_number()==1) |> 
   ungroup() |> 
   mutate(consistent = ifelse(num_consistent >= 7, "Good Consistent", ifelse(num_consistent <= 6 & num_consistent >= 5, "Ok Consistent", "Bad Consistent")))
-  
-
-
-master_energy |> 
-  na.omit() |> 
-  ggplot(aes(x = Year, y = total_zscore, label = Player)) +
-  geom_beeswarm(alpha = 0.3) +
-  geom_label_repel(size = 2, box.padding = 0.25) + 
-  labs(
-    x = "Season Starting Year",
-    y = "Z-Score",
-    caption = "Data Courtesy of Hockey-Reference"
-  ) + 
-  theme_light() +
-  scale_y_continuous(limits = c(-2, 6), breaks = seq(-2, 6, by = 1))
 
 
 ```
@@ -781,20 +831,25 @@ master_energy2 |>
   theme(legend.position = "none") +
   scale_x_continuous(limits = c(0, 250), breaks = seq(0, 250, by = 50))
 
+# Convert 'consistent' to a factor and set the order of levels
+master_energy2$consistent <- factor(master_energy2$consistent, levels = c('Bad Consistent', 'Ok Consistent', 'Good Consistent'))
 
+master_energy2$skill <- factor(master_energy2$skill, levels = c('Worst', 'Bad', 'Good', 'Great'))
+
+# Create the plot
 master_energy2 |> 
   na.omit() |> 
   ggplot(aes(y = consistent)) +
   geom_bar(aes(fill = skill), position = "dodge") +
-  # scale_y_discrete(limits=c('Good Consistent', 'Ok Consistent', 'Bad Consistent')) +
   scale_fill_discrete(breaks=c('Worst', 'Bad', 'Good', 'Great')) +
   labs(
     x = "Number of Players",
-    y = "<-- Better 'Energy' Ability",
+    y = "Type of Consistency",
+    fill = "Skill in 'Energy' Ability",
     caption = "Data Courtesy of Hockey-Reference"
   ) +
-  # theme(legend.position = "none") +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10))
+  scale_x_continuous(limits = c(0, 90), breaks = seq(0, 90, by = 10))
+
 ```
 
 
@@ -810,9 +865,10 @@ master_energy |>
   ggplot(aes(x = Year, y = total_zscore, label = Player)) +
   # geom_point(aes(color = Groupings), alpha = 0.2) +
   geom_beeswarm(alpha = 0.3) +
-  # geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 2) +
-  # geom_hline(yintercept = -0.5, color = "red", linetype = "dashed", size = 2) +
   geom_label_repel(size = 2, box.padding = 0.25) + 
+  geom_hline(aes(yintercept = qtr1)) +
+  geom_hline(aes(yintercept = qtr2)) +
+  geom_hline(aes(yintercept = qtr3)) +
   labs(
     x = "Season Starting Year",
     y = "Z-Score",
