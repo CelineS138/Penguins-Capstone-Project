@@ -1,0 +1,304 @@
+---
+title: "Denfenders_and_Covidgames"
+author: "Chisunta M Chikwamu"
+format: html
+editor: visual
+---
+
+## Defining Consistency Metrics
+
+Different statistics offer different insights on the value that a particular player adds to a game and more specifically the outcome of the game. It is hard to evaluate all players with one metric as this would be like comparing bananas and oranges. While both are sweet, oranges are more acidic while bananas are alkali. They both add nutritional value but in different aspects; where a banana maybe strong and orange may be weak. So allow us to introduce 5 metrics to consider when measuring consistency among players in hockey:
+
+-   Play-maker,
+
+-   Scorer,
+
+-   Defender,
+
+-   Saver,
+
+-   Energizer
+
+-   The sixth metric really just takes into account the differences that happened in the league in 2019-2020 and 2020-2021 seasons. This is Covid-Break.
+
+Each metric considers the following stats in a data set we have combined called complete-df:
+
+-   Play-maker (assists, oiSH%?, EVA/60, PPA/60)
+-   Scorer (goals, oiSH%, EVG/60, PPA/60, goals created/60)
+-   Defensive (GA/60, oiSV%)
+-   Saves/preventing goals (SV%/60, GAA/60)
+-   Energy (hits/60, blocks/60, pim/60?)
+-   Playing (games played (non-covid seasons), estimated GP(2019-20, 2020-21), TOI/60)
+
+## Defense men
+
+In this Document, I explore what makes a consistent defense man. What makes a defense man?
+
+```{r}
+library(tidyverse)
+library(broom)
+library(ggplot2)
+
+# Introduction
+cat("
+Defining Consistency Metrics
+
+Different statistics offer different insights on the value that a particular player adds to a game and more specifically the outcome of the game. It is hard to evaluate all players with one metric as this would be like comparing bananas and oranges. While both are sweet, oranges are more acidic while bananas are alkali. They both add nutritional value but in different aspects; where a banana maybe strong and orange may be weak. So allow us to introduce 5 metrics to consider when measuring consistency among players in hockey:
+
+1. Play-maker
+2. Scorer
+3. Defender
+4. Saver
+5. Energizer
+
+The sixth metric really just takes into account the differences that happened in the league in 2019-2020 and 2020-2021 seasons. This is Covid-Break.
+
+Each metric considers the following stats in a data set we have combined called complete_df:
+
+- Play-maker: assists, oiSH%?, EVA/60, PPA/60
+- Scorer: goals, oiSH%, EVG/60, PPA/60, goals created/60
+- Defensive: GA/60, oiSV%
+- Saves/preventing goals: SV%/60, GAA/60
+- Energy: hits/60, blocks/60, pim/60?
+- Playing: games played (non-covid seasons), estimated GP(2019-20, 2020-21), TOI/60
+
+In this Document, I explore what makes a consistent defenseman.
+")
+
+# Define Functions to Load and Process Data
+sanitize_colnames <- function(colnames) {
+  colnames <- gsub("%", "_percent", colnames)
+  colnames <- gsub("\\+/-", "plus_minus", colnames)
+  colnames <- gsub("/", "_", colnames)
+  colnames <- make.names(colnames)
+  colnames <- gsub("\\.", "_", colnames)
+  colnames
+}
+
+load_stats <- function(path, start_year, type) {
+  data <- read_csv(path) %>%
+    mutate(start_year = start_year)
+  
+  if (type == "basic") {
+    data <- data %>%
+      rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) %>%
+      filter(GP >= 20) %>%
+      select(Player, PlayerID, Pos, GP, G, A, PTS, EVG, PPG, SHG, EVA, PPA, SHA, `+/-`, TOI, `S%`, PS, start_year)
+  } else if (type == "advanced") {
+    data <- data %>%
+      filter(GP >= 20) %>%
+      select(Player, PlayerID, Pos, GP, CF, CA, FF, FA, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`, start_year)
+  } else if (type == "misc") {
+    data <- data %>%
+      filter( GP >= 20) %>%
+      select(Player, PlayerID, Pos, GP, `G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`, start_year)
+  } else if (type == "toi") {
+    data <- data %>%
+      filter(GP >= 20) %>%
+      select(Player, PlayerID, Pos, GP, `TOI (EV)`, `CF% Rel (EV)`, `GF/60 (EV)`, `GA/60 (EV)`, `TOI (PP)`, `CF% Rel (PP)`, `GF/60 (PP)`, `GA/60 (PP)`, `TOI (SH)`, `CF% Rel (SH)`, `GF/60 (SH)`, `GA/60 (SH)`, start_year)
+  }
+  return(data)
+}
+```
+
+```{r}
+# Local paths for data files
+base_path <- "~/Documents/CMU SURE'24/Final_Project_Penguins/Penguins-Capstone-Project/Chikwamu"
+
+basic_paths <- list.files(path = file.path(base_path, "basic_stats"), full.names = TRUE, pattern = "*.csv")
+advanced_paths <- list.files(path = file.path(base_path, "advanced_stats"), full.names = TRUE, pattern = "*.csv")
+misc_paths <- list.files(path = file.path(base_path, "misc_stats"), full.names = TRUE, pattern = "*.csv")
+toi_paths <- list.files(path = file.path(base_path, "TOI_stats"), full.names = TRUE, pattern = "*.csv")
+
+# Function to extract the start year from file names
+extract_start_year <- function(path) {
+  str_extract(basename(path), "\\d{2}_\\d{2}") %>% 
+    str_replace("_", "20") %>%
+    as.numeric()
+}
+
+```
+
+### Combine data
+
+```{r}
+# Function to read and combine data, adding the start_year column
+read_and_combine_data <- function(paths, type) {
+  data_list <- lapply(paths, function(path) {
+    start_year <- extract_start_year(path)
+    load_stats(path, start_year, type)
+  })
+  combined_data <- bind_rows(data_list)
+  return(combined_data)
+}
+
+# Load and combine all datasets
+basic_data <- read_and_combine_data(basic_paths, "basic")
+advanced_data <- read_and_combine_data(advanced_paths, "advanced")
+misc_data <- read_and_combine_data(misc_paths, "misc")
+toi_data <- read_and_combine_data(toi_paths, "toi")
+```
+
+### Ensuring columns work with R code
+
+```{r}
+# Sanitize column names
+sanitize_colnames <- function(colnames) {
+  colnames <- gsub("%", "_percent", colnames)
+  colnames <- gsub("\\+/-", "plus_minus", colnames)
+  colnames <- make.names(colnames)
+  colnames <- gsub("\\.", "_", colnames)
+  colnames
+}
+
+colnames(basic_data) <- sanitize_colnames(colnames(basic_data))
+colnames(advanced_data) <- sanitize_colnames(colnames(advanced_data))
+colnames(misc_data) <- sanitize_colnames(colnames(misc_data))
+colnames(toi_data) <- sanitize_colnames(colnames(toi_data))
+
+# Define metrics and id columns for each dataframe
+basic_metrics <- c("G", "A", "PTS", "EVG", "PPG", "SHG", "EVA", "PPA", "SHA", "plus_minus", "TOI", "S_percent", "PS")
+advanced_metrics <- c("GP", "CF", "CA", "FF", "FA", "oiSH_percent", "oiSV_percent", "PDO", "TK", "GV", "CF_percent", "FF_percent")
+misc_metrics <- c("G_GP", "A_GP", "PTS_GP", "GC_GP", "S_GP", "plus_minus", "OPS", "DPS", "PS")
+toi_metrics <- c("TOI_EV", "CF_percent_Rel_EV", "GF_60_EV", "GA_60_EV", "TOI_PP", "CF_percent_Rel_PP", "GF_60_PP", "GA_60_PP", "TOI_SH", "CF_percent_Rel_SH", "GF_60_SH", "GA_60_SH")
+
+```
+
+## Processing Data
+
+```{r}
+process_df <- function(df, metrics, id_cols) {
+  df %>%
+    pivot_wider(id_cols = all_of(id_cols), names_from = start_year, values_from = all_of(metrics)) %>%
+    unnest(cols = everything()) %>%
+    replace(is.na(.), NA)
+}
+
+# Process dataframes
+long_basic_df <- process_df(basic_data, basic_metrics, c("Player", "PlayerID"))
+long_adv_df <- process_df(advanced_data, advanced_metrics, c("Player", "PlayerID"))
+long_misc_df <- process_df(misc_data, misc_metrics, c("Player", "PlayerID"))
+long_toi_df <- process_df(toi_data, toi_metrics, c("Player", "PlayerID"))
+```
+
+```{r}
+# Combine Data
+complete_df <- list(long_basic_df, long_adv_df, long_misc_df, long_toi_df) %>%
+  reduce(left_join, by = c("Player", "PlayerID"))
+
+# Sanitize column names again after combining
+colnames(complete_df) <- sanitize_colnames(colnames(complete_df))
+
+# View combined data
+head(complete_df)
+```
+
+## Defensive Metric
+
+```{r}
+# Filter for defensemen and COVID years (2019-2021)
+defensemen_df <- complete_df %>%
+  filter(Pos == "D", start_year %in% c(2019, 2020, 2021)) %>%
+  select(Player, start_year, contains("TGA"), contains("oiSV_percent"), contains("TOI"))
+
+# Calculate Z-scores and Plot
+calculate_z_scores <- function(df, metrics) {
+  df %>%
+    mutate(across(all_of(metrics), ~ scale(.)[,1], .names = "z_{col}"))
+}
+
+metrics <- c("TGA_per_60", "oiSV_percent")
+defensive_z_scores <- calculate_z_scores(defensemen_df, metrics)
+
+defensive_z_scores <- defensive_z_scores %>%
+  rowwise() %>%
+  mutate(combined_z_score = mean(c_across(starts_with("z_")), na.rm = TRUE)) %>%
+```
+
+# Method One
+
+```{r}
+library(tidyverse)
+library(broom)
+library(ggplot2)
+# Define file paths for data files
+base_path <- "~/Documents/CMU SURE'24/Final_Project_Penguins/Penguins-Capstone-Project/Chikwamu"
+
+basic_paths <- list.files(path = file.path(base_path, "basic_stats"), full.names = TRUE, pattern = "*.csv")
+advanced_paths <- list.files(path = file.path(base_path, "advanced_stats"), full.names = TRUE, pattern = "*.csv")
+misc_paths <- list.files(path = file.path(base_path, "misc_stats"), full.names = TRUE, pattern = "*.csv")
+toi_paths <- list.files(path = file.path(base_path, "TOI_stats"), full.names = TRUE, pattern = "*.csv")
+
+# Function to read and combine data
+read_and_combine_data <- function(paths) {
+  data_list <- lapply(paths, read_csv)
+  combined_data <- bind_rows(data_list)
+  return(combined_data)
+}
+```
+
+### Combine data
+
+```{r}
+# Read and combine all datasets
+basic_data <- read_and_combine_data(basic_paths)
+advanced_data <- read_and_combine_data(advanced_paths)
+misc_data <- read_and_combine_data(misc_paths)
+toi_data <- read_and_combine_data(toi_paths)
+```
+
+### Cleaning and creating new dataframes
+
+```{r}
+# Function to sanitize column names
+sanitize_colnames <- function(colnames) {
+  colnames <- gsub("%", "_percent", colnames)
+  colnames <- make.names(colnames)
+  colnames <- gsub("\\.", "_", colnames)
+  colnames
+}
+# Sanitize column names
+colnames(basic_data) <- sanitize_colnames(colnames(basic_data))
+colnames(advanced_data) <- sanitize_colnames(colnames(advanced_data))
+colnames(misc_data) <- sanitize_colnames(colnames(misc_data))
+colnames(toi_data) <- sanitize_colnames(colnames(toi_data))
+
+head(basic_data)
+```
+
+```{r}
+# Function to process each dataframe
+process_df <- function(df, metrics, id_cols) {
+  df|>
+    pivot_wider(id_cols = all_of(id_cols), names_from = start_year, values_from = all_of(metrics)) |>
+    unnest() |>
+    replace(. == "NULL", NA)
+}
+```
+
+```{r}
+# Define metrics and id columns for each dataframe
+basic_metrics <- c("G", "A", "PTS", "EVG", "PPG", "SHG", "EVA", "PPA", "SHA", "+/-", "TOI", "S_percent", "PS")
+advanced_metrics <- c("GP", "CF", "CA", "FF", "FA", "oiSH_percent", "oiSV_percent", "PDO", "TK", "GV", "CF_percent", "FF_percent")
+misc_metrics <- c("G_GP", "A_GP", "PTS_GP", "GC_GP", "S_GP", "+/-", "OPS", "DPS", "PS")
+toi_metrics <- c("TOI_EV", "CF_percent_Rel_EV", "GF_60_EV", "GA_60_EV", "TOI_PP", "CF_percent_Rel_PP", "GF_60_PP", "GA_60_PP", "TOI_SH", "CF_percent_Rel_SH", "GF_60_SH", "GA_60_SH")
+
+# Process dataframes
+long_basic_df <- process_df(basic_data, basic_metrics, c("Player", "PlayerID"))
+long_adv_df <- process_df(advanced_data, advanced_metrics, c("Player", "PlayerID"))
+long_misc_df <- process_df(misc_data, misc_metrics, c("Player","PlayerID"))
+long_toi_df <- process_df(toi_data, toi_metrics, c("Player","PlayerID"))
+
+```
+
+```{r}
+# Combine Data
+complete_df <- list(long_basic_df, long_adv_df, long_misc_df, long_toi_df) %>%
+  reduce(left_join, by = c("Player", "PlayerID"))
+
+# Sanitize column names again after combining
+colnames(complete_df) <- sanitize_colnames(colnames(complete_df))
+
+# View combined data
+head(complete_df)
+```
