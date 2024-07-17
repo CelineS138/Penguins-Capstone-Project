@@ -44,7 +44,7 @@ mutate(start_year = start_year)
 
 }
 
-## Functions to Load and Process data from Celine's Repo-88888
+## Functions to Load and Process data from Celine's Repo
 
 ```{r}
 library(dplyr)
@@ -342,7 +342,7 @@ z_scores <- calculate_z_scores(summary_stats)
 combined_z_scores <- combine_z_scores(z_scores)
 
 # Visualize z-scores for a player
-visualize_z_scores(combined_z_scores, "Sidney Crosby")
+visualize_z_scores(combined_z_scores)
 
 ```
 
