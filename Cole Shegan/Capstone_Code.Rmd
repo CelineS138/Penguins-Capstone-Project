@@ -810,19 +810,43 @@ master_energy2 <- master_energy |>
   arrange(Player, desc(num_consistent)) |> 
   filter(row_number()==1) |> 
   ungroup() |> 
-  mutate(consistent = ifelse(num_consistent >= 7, "Good Consistent", ifelse(num_consistent <= 6 & num_consistent >= 5, "Ok Consistent", "Bad Consistent")))
+  mutate(consistent = ifelse(num_consistent >= 7, "Good Consistent", ifelse(num_consistent <= 6 & num_consistent >= 5, "Somewhat Consistent", "Bad Consistent")))
 
 
 ```
 
 
 
+
 ```{r}
+library(flexclust)
+init_kmeanspp <- master_energy |> 
+  select(total_zscore, ) |> 
+  kcca(k = 4, control = list(initcent = "kmeanspp"))
+
+master_energy |>
+  mutate(
+    player_clusters = as.factor(init_kmeanspp@cluster)
+  ) |>
+  ggplot(aes(x = total_zscore, y = life_expectancy,
+             color = player_clusters)) +
+  geom_point(size = 4) + 
+  ggthemes::scale_color_colorblind() +
+  theme(legend.position = "bottom")
+```
+
+
+
+
+
+```{r}
+# try clustering the z-scores instead of using divisions
+
 master_energy2 |> 
   ggplot(aes(y = consistent)) +
   geom_bar(aes(fill = consistent)) +
-  scale_y_discrete(limits=c('Good Consistent', 'Ok Consistent', 'Bad Consistent')) +
-  scale_fill_manual(values = c("Bad Consistent" = "purple1", "Ok Consistent" = "orange", "Good Consistent" = "blue")) +
+  scale_y_discrete(limits=c('Good Consistent', 'Somewhat Consistent', 'Bad Consistent')) +
+  scale_fill_manual(values = c("Bad Consistent" = "purple1", "Somewhat Consistent" = "orange", "Good Consistent" = "blue")) +
   labs(
     x = "Number of Players",
     y = "<-- Better 'Energy' Ability",
@@ -832,7 +856,7 @@ master_energy2 |>
   scale_x_continuous(limits = c(0, 250), breaks = seq(0, 250, by = 50))
 
 # Convert 'consistent' to a factor and set the order of levels
-master_energy2$consistent <- factor(master_energy2$consistent, levels = c('Bad Consistent', 'Ok Consistent', 'Good Consistent'))
+master_energy2$consistent <- factor(master_energy2$consistent, levels = c('Bad Consistent', 'Somewhat Consistent', 'Good Consistent'))
 
 master_energy2$skill <- factor(master_energy2$skill, levels = c('Low', 'Mid-Low', 'Mid-High', 'High'))
 
@@ -845,7 +869,7 @@ master_energy2 |>
   labs(
     x = "Number of Players",
     y = "Type of Consistency",
-    fill = "'Energy' Skill",
+    fill = "Skill Level",
     caption = "Data Courtesy of Hockey-Reference"
   ) +
   scale_x_continuous(limits = c(0, 90), breaks = seq(0, 90, by = 10)) +
