@@ -1,13 +1,3 @@
-load_and_process_toi \<- function(url, start_year) {
-
-print(paste("Loading TOI Stats from:", url)) \# Debugging line
-
-read_csv(url) \|\>
-
-mutate(start_year = start_year)
-
-}
-
 ---
 title: "Defensemen Consistency"
 author: "Chisunta M Chikwamu"
@@ -54,7 +44,7 @@ mutate(start_year = start_year)
 
 }
 
-## Functions to Load and Process data from Celine's Repo
+## Functions to Load and Process data from Celine's Repo-8
 
 ```{r}
 library(dplyr)
