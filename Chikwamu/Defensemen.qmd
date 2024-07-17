@@ -1,0 +1,427 @@
+load_and_process_toi \<- function(url, start_year) {
+
+print(paste("Loading TOI Stats from:", url)) \# Debugging line
+
+read_csv(url) \|\>
+
+mutate(start_year = start_year)
+
+}
+
+---
+title: "Defensemen Consistency"
+author: "Chisunta M Chikwamu"
+format: html
+editor: visual
+---
+
+## Defining Consistency Metrics
+
+Different statistics offer different insights on the value that a particular player adds to a game and more specifically the outcome of the game. It is hard to evaluate all players with one metric as this would be like comparing bananas and oranges. While both are sweet, oranges are more acidic while bananas are alkali. They both add nutritional value but in different aspects; where a banana maybe strong and orange may be weak. So allow us to introduce 5 metrics to consider when measuring consistency among players in hockey:
+
+-   Play-maker,
+
+-   Scorer,
+
+-   Defender,
+
+-   Saver,
+
+-   Energizer
+
+-   The sixth metric really just takes into account the differences that happened in the league in 2019-2020 and 2020-2021 seasons. This is Covid-Break.
+
+Each metric considers the following stats in a data set we have combined called complete-df:
+
+-   Play-maker (assists, oiSH%?, EVA/60, PPA/60)
+-   Scorer (goals, oiSH%, EVG/60, PPA/60, goals created/60)
+-   Defensive (GA/60, oiSV%)
+-   Saves/preventing goals (SV%/60, GAA/60)
+-   Energy (hits/60, blocks/60, pim/60?)
+-   Playing (games played (non-covid seasons), estimated GP(2019-20, 2020-21), TOI/60)
+
+## Defense men
+
+In this Document, I explore what makes a consistent defense man. What makes a defense man?
+
+load_and_process_basic \<- function(url, start_year) {
+
+print(paste("Loading Basic Stats from:", url)) \# Debugging line
+
+read_csv(url) \|\>
+
+mutate(start_year = start_year)
+
+}
+
+## Functions to Load and Process data from Celine's Repo
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+
+# Function to load and process Basic Stats with renaming columns
+load_and_process_basic <- function(url, start_year) {
+  print(paste("Loading Basic Stats from:", url))  # Debugging line
+  df <- read_csv(url) |>
+    rename(EVG = EV...13, PPG = PP...14, SHG = SH...15, EVA = EV...17, PPA = PP...18, SHA = SH...19) |>
+    mutate(start_year = start_year) |>
+    filter(Pos != "G", GP >= 20)
+  
+  # Ensure consistent column names
+  expected_cols <- c("Player", "PlayerID", "G", "A", "PTS", "EVG", "PPG", "SHG", "EVA", "PPA", "SHA", "+/-", "TOI", "S%", "PS", "start_year")
+  missing_cols <- setdiff(expected_cols, colnames(df))
+  df[missing_cols] <- NA
+  
+  df <- df[, expected_cols]
+  
+  return(df)
+}
+```
+
+```{r}
+# Function to load and process Advanced Stats
+load_and_process_advanced <- function(url, start_year) {
+  print(paste("Loading Advanced Stats from:", url))  # Debugging line
+  df <- read_csv(url) |>
+    mutate(start_year = start_year) |>
+    filter(Pos != "G", GP >= 20)
+  
+  # Ensure consistent column names
+  expected_cols <- c("Player", "PlayerID", "GP", "CF", "CA", "FF", "FA", "oiSH%", "oiSV%", "PDO", "TK", "GV", "CF%", "FF%", "start_year")
+  missing_cols <- setdiff(expected_cols, colnames(df))
+  df[missing_cols] <- NA
+  
+  df <- df[, expected_cols]
+  
+  return(df)
+}
+```
+
+```{r}
+# Function to load and process Misc Stats
+load_and_process_misc <- function(url, start_year) {
+  print(paste("Loading Misc Stats from:", url))  # Debugging line
+  df <- read_csv(url) |>
+    mutate(start_year = start_year) |>
+    filter(Pos != "G", GP >= 20) |>
+    mutate(Pos = str_extract(Pos, "[A-Z]"))
+  
+  # Ensure consistent column names
+  expected_cols <- c("Player", "PlayerID", "G/GP", "A/GP", "PTS/GP", "GC/GP", "S/GP", "+/-", "OPS", "DPS", "PS", "Pos", "start_year")
+  missing_cols <- setdiff(expected_cols, colnames(df))
+  df[missing_cols] <- NA
+  
+  df <- df[, expected_cols]
+  
+  return(df)
+}
+
+```
+
+```{r}
+# Function to load and process TOI Stats
+load_and_process_toi <- function(url, start_year) {
+  print(paste("Loading TOI Stats from:", url))  # Debugging line
+  df <- read_csv(url) |>
+    mutate(start_year = start_year) |>
+    filter(Pos != "G", GP >= 20)
+  
+  # Ensure consistent column names
+  expected_cols <- c("Player", "PlayerID", "TOI (EV)", "CF% Rel (EV)", "GF/60 (EV)", "GA/60 (EV)", "TOI (PP)", "CF% Rel (PP)", "GF/60 (PP)", "GA/60 (PP)", "TOI (SH)", "CF% Rel (SH)", "GF/60 (SH)", "GA/60 (SH)", "start_year")
+  missing_cols <- setdiff(expected_cols, colnames(df))
+  df[missing_cols] <- NA
+  
+  df <- df[, expected_cols]
+  
+  return(df)
+}
+```
+
+## 1. Basic Statistics
+
+```{r}
+# URLs for Data
+basic_urls <- list(
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_23_24.csv" = 2023,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_22_23.csv" = 2022,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_21_22.csv" = 2021,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_20_21.csv" = 2020,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_19_20.csv" = 2019,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_18_19.csv" = 2018,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_17_18.csv" = 2017,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Basic%20Stats/basic_stats_16_17.csv" = 2016
+)
+```
+
+## 2. Miscellaneous Statistics
+
+```{r}
+advanced_urls <- list(
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_23_24.csv" = 2023,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_22_23.csv" = 2022,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_21_22.csv" = 2021,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_20_21.csv" = 2020,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_19_20.csv" = 2019,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_18_19.csv" = 2018,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_17_18.csv" = 2017,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Advanced%20Stats/advanced_stats_16_17.csv" = 2016
+)
+```
+
+## 3. Advanced Statistics
+
+```{r}
+misc_urls <- list(
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_23_24.csv" = 2023,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_22_23.csv" = 2022,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_21_22.csv" = 2021,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_20_21.csv" = 2020,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_19_20.csv" = 2019,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_18_19.csv" = 2018,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_17_18.csv" = 2017,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/Misc%20Stats/misc_stats_16_17.csv" = 2016
+)
+```
+
+## 4. Time on Ice
+
+```{r}
+toi_urls <- list(
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_23_24.csv" = 2023,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_22_23.csv" = 2022,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_21_22.csv" = 2021,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_20_21.csv" = 2020,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_19_20.csv" = 2019,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_18_19.csv" = 2018,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_17_18.csv" = 2017,
+  "https://raw.githubusercontent.com/CelineS138/Penguins-Capstone-Project/main/Data/TOI%20Stats/toi_stats_16_17.csv" = 2016
+)
+```
+
+## Loading all the data
+
+```{r}
+# Load all data
+load_all_data <- function(urls, load_function) {
+  do.call(rbind, lapply(names(urls), function(url) load_function(url, urls[[url]])))
+}
+
+basic_df <- load_all_data(basic_urls, load_and_process_basic)
+advanced_df <- load_all_data(advanced_urls, load_and_process_advanced)
+misc_df <- load_all_data(misc_urls, load_and_process_misc)
+toi_df <- load_all_data(toi_urls, load_and_process_toi)
+
+```
+
+```{r}
+# Pivot each dataset
+long_basic_df <- basic_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), 
+              values_from = c(G, A, PTS, EVG, PPG, SHG, EVA, PPA, SHA, `+/-`, TOI, `S%`, PS), 
+              names_from = start_year) |> 
+  unique()
+
+long_advanced_df <- advanced_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), 
+              values_from = c(GP, CF, CA, FF, FA, `oiSH%`, `oiSV%`, PDO, TK, GV, `CF%`, `FF%`), 
+              names_from = start_year) |> 
+  unique()
+
+long_misc_df <- misc_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), 
+              values_from = c(`G/GP`, `A/GP`, `PTS/GP`, `GC/GP`, `S/GP`, `+/-`, `OPS`, `DPS`, `PS`), 
+              names_from = start_year) |> 
+  unique()
+
+long_toi_df <- toi_df |> 
+  pivot_wider(id_cols = c(Player, PlayerID), 
+              values_from = c(`TOI (EV)`, `CF% Rel (EV)`, `GF/60 (EV)`, `GA/60 (EV)`, `TOI (PP)`, `CF% Rel (PP)`, `GF/60 (PP)`, `GA/60 (PP)`, `TOI (SH)`, `CF% Rel (SH)`, `GF/60 (SH)`, `GA/60 (SH)`), 
+              names_from = start_year) |> 
+  unique()
+
+```
+
+## Combining all the data
+
+```{r}
+# Merge the dataframes
+merged_df <- long_basic_df |>
+  full_join(long_advanced_df, by = c("Player", "PlayerID")) |>
+  full_join(long_misc_df, by = c("Player", "PlayerID")) |>
+  full_join(long_toi_df, by = c("Player", "PlayerID"))
+
+# Additional processing
+num_seasons <- misc_df |> 
+  group_by(Player, PlayerID) |> 
+  count() |> 
+  ungroup() |> 
+  mutate(num_seasons = n) |> 
+  unique()
+
+player_pos <- misc_df |> 
+  mutate(Pos = str_extract(Pos, "[A-Z]")) |> 
+  group_by(Player) |> 
+  summarise(Pos = ifelse(Pos %in% c("C", "L", "R", "W", "F"), "F", "D")) |> 
+  unique()
+
+complete_df <- merged_df %>%
+  left_join(player_pos, by = "Player") %>%
+  left_join(num_seasons, by = c("Player", "PlayerID"))
+
+complete_df <- complete_df[, !duplicated(colnames(complete_df))]
+complete_df_sel <- complete_df |> 
+  filter(num_seasons >= 5)
+
+# View the resulting dataframe
+print(complete_df_sel)
+
+```
+
+# Defensive Metric
+
+```{r}
+calculate_defensive_stats <- function(df, metric_names) {
+  df |> 
+    group_by(Player, PlayerID) |> 
+    summarize(
+      across(starts_with("GA_"), ~ mean(.x / get(paste0("TOI_", gsub("GA_", "", cur_column()))), na.rm = TRUE) * 60, .names = "GA/60_{gsub('GA_', '', .col)}"),
+      across(starts_with("oiSV_"), ~ mean(.x, na.rm = TRUE), .names = "oiSV_{gsub('oiSV_', '', .col)}"),
+      across(starts_with("DPS_"), ~ mean(.x, na.rm = TRUE), .names = "DPS_{gsub('DPS_', '', .col)}")
+    )
+}
+
+calculate_summary_stats <- function(df) {
+  df |> 
+    ungroup() |> 
+    mutate(
+      across(starts_with("GA/60"), ~ mean(.x, na.rm = TRUE), .names = "mean_{.col}"),
+      across(starts_with("oiSV"), ~ mean(.x, na.rm = TRUE), .names = "mean_{.col}"),
+      across(starts_with("DPS"), ~ mean(.x, na.rm = TRUE), .names = "mean_{.col}"),
+      across(starts_with("GA/60"), ~ sd(.x, na.rm = TRUE), .names = "sd_{.col}"),
+      across(starts_with("oiSV"), ~ sd(.x, na.rm = TRUE), .names = "sd_{.col}"),
+      across(starts_with("DPS"), ~ sd(.x, na.rm = TRUE), .names = "sd_{.col}")
+    )
+}
+
+```
+
+```{r}
+calculate_z_scores <- function(df) {
+  df |> 
+    rowwise() |> 
+    mutate(
+      across(starts_with("GA/60"), ~ (.x - get(paste0("mean_", cur_column()))) / get(paste0("sd_", cur_column())), .names = "GA_zscore_{gsub('GA/60_', '', .col)}"),
+      across(starts_with("oiSV"), ~ (.x - get(paste0("mean_", cur_column()))) / get(paste0("sd_", cur_column())), .names = "oiSV_zscore_{gsub('oiSV_', '', .col)}"),
+      across(starts_with("DPS"), ~ (.x - get(paste0("mean_", cur_column()))) / get(paste0("sd_", cur_column())), .names = "DPS_zscore_{gsub('DPS_', '', .col)}")
+    )
+}
+```
+
+```{r}
+combine_z_scores <- function(df) {
+  df |> 
+    group_by(Player, PlayerID) |> 
+    summarize(
+      across(starts_with("GA_zscore"), ~ mean(.x, na.rm = TRUE), .names = "GA_zscore_{gsub('GA_zscore_', '', .col)}"),
+      across(starts_with("oiSV_zscore"), ~ mean(.x, na.rm = TRUE), .names = "oiSV_zscore_{gsub('oiSV_zscore_', '', .col)}"),
+      across(starts_with("DPS_zscore"), ~ mean(.x, na.rm = TRUE), .names = "DPS_zscore_{gsub('DPS_zscore_', '', .col)}"),
+      across(starts_with("GA_zscore"), ~ mean(c(.x, get(paste0("oiSV_zscore_", gsub("GA_zscore_", "", cur_column())), na.rm = TRUE), get(paste0("DPS_zscore_", gsub("GA_zscore_", "", cur_column())), na.rm = TRUE)), na.rm = TRUE), .names = "combined_zscore_{gsub('GA_zscore_', '', .col)}")
+    )
+}
+
+```
+
+```{r}
+# Create a new dataframe called defender
+defender <- complete_df_sel |> 
+  select(Player, PlayerID, starts_with("TOI_"), starts_with("GA_"), contains("oiSV_"), contains("DPS_"))
+
+# Calculate defensive stats
+defensive_stats <- calculate_defensive_stats(defender)
+
+# Calculate summary stats
+summary_stats <- calculate_summary_stats(defensive_stats)
+
+# Calculate z-scores
+z_scores <- calculate_z_scores(summary_stats)
+
+# Combine z-scores
+combined_z_scores <- combine_z_scores(z_scores)
+
+# Visualize z-scores for a player
+visualize_z_scores(combined_z_scores, "Sidney Crosby")
+
+```
+
+## Plots
+
+```{r}
+# Boxplot for TGA_per_60 Z-scores
+ggplot(defensive_z_scores, aes(x = Player, y = z_TGA_per_60)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Z-Scores for TGA_per_60 by Player", x = "Player", y = "Z-Score (TGA_per_60)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Boxplot for oiSV_percent Z-scores
+ggplot(defensive_z_scores, aes(x = Player, y = z_oiSV_percent)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Z-Scores for oiSV_percent by Player", x = "Player", y = "Z-Score (oiSV_percent)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Boxplot for combined Z-scores
+ggplot(defensive_z_scores, aes(x = Player, y = combined_z_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Combined Z-Scores by Player", x = "Player", y = "Combined Z-Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+```{r}
+# Heatmap for TGA_per_60 Z-scores
+ggplot(defensive_z_scores, aes(x = start_year, y = Player, fill = z_TGA_per_60)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  labs(title = "Heatmap of Z-Scores for TGA_per_60", x = "Season", y = "Player", fill = "Z-Score (TGA_per_60)") +
+  theme_minimal()
+
+# Heatmap for oiSV_percent Z-scores
+ggplot(defensive_z_scores, aes(x = start_year, y = Player, fill = z_oiSV_percent)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  labs(title = "Heatmap of Z-Scores for oiSV_percent", x = "Season", y = "Player", fill = "Z-Score (oiSV_percent)") +
+  theme_minimal()
+
+# Heatmap for combined Z-scores
+ggplot(defensive_z_scores, aes(x = start_year, y = Player, fill = combined_z_score)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  labs(title = "Heatmap of Combined Z-Scores", x = "Season", y = "Player", fill = "Combined Z-Score") +
+  theme_minimal()
+
+```
+
+```{r}
+
+# Select key players
+key_players <- c("Player1", "Player2", "Player3")  # Replace with actual player names
+
+# Filter for key players
+filtered_defensive_z_scores <- defensive_z_scores %>%
+  filter(Player %in% key_players)
+
+# Line plot for selected players
+ggplot(filtered_defensive_z_scores, aes(x = start_year, y = combined_z_score, group = Player, color = Player)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Combined Z-Scores Over Time for Key Players", x = "Season", y = "Combined Z-Score") +
+  theme_minimal()
+
+```
+
+# 
