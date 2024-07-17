@@ -1,4 +1,3 @@
-
 ---
 title: "Cole's Code"
 output: html_document
